@@ -28,13 +28,13 @@ README.md                                  # This file
 docs/
 ├── 01 architecture design template.md       # Documento de diseño de Arquitectura
 ├── 02 deployment runbook template.md        # Documento de Deployment & Runbooks
-├── 02 deployment runbook template.md        # Documento de Deployment & Runbooks
-├── 03 service ownership raci template.md    # Documento de Service Ownership & RACI
-├── 04 observability monitoring template.md  # Documento de Observability & Monitoring
-├── 05 service catalog template.md           # Documento de Service Catalog Entry
-├── 06 incident management template.md       # Documento de Incident Management y Post-Mortem Template
-├── 07 change management template.md         # Documento de Gestión del cambio
-└── 08 api documentation template.md         # Documento de Documentación de las API
+├── 03 deployment runbook template.md        # Documento de Deployment & Runbooks
+├── 04 service ownership raci template.md    # Documento de Service Ownership & RACI
+├── 05 observability monitoring template.md  # Documento de Observability & Monitoring
+├── 06 service catalog template.md           # Documento de Service Catalog Entry
+├── 07 incident management template.md       # Documento de Incident Management y Post-Mortem Template
+├── 08 change management template.md         # Documento de Gestión del cambio
+└── 09 api documentation template.md         # Documento de Documentación de las API
 
 
 ```
