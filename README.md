@@ -1,18 +1,19 @@
-📦 Templates Entregados
+# 📦 Templates Entregados
 
-1. Templates Mejorados (tus entregables actuales):
-2. Architecture Design - Evolución de tu doc actual con SLOs, diagramas C4, compliance, DR
-3. Deployment & Runbooks - IaC-first, GitOps, rollback automático, procedimientos operacionales
-4. Service Ownership & RACI - Ampliado con on-call, escalation, decisiones, ownership completo
-5. Observability & Monitoring - Golden signals, SLOs, alerting avanzado, dashboards
+## Templates Mejorados (tus entregables actuales):
+1. Architecture Design - Evolución de tu doc actual con SLOs, diagramas C4, compliance, DR
+2. Deployment & Runbooks - IaC-first, GitOps, rollback automático, procedimientos operacionales
+3. Service Ownership & RACI - Ampliado con on-call, escalation, decisiones, ownership completo
+4. Observability & Monitoring - Golden signals, SLOs, alerting avanzado, dashboards
 
-Templates Nuevos (esenciales para SRE moderno):
-6. Service Catalog Entry - Registro centralizado para descubrimiento de servicios
-7. Incident Management - Response workflow, post-mortems, runbooks, comunicación
-8. Change Management - Tipos de cambios, aprobaciones, RFCs, ventanas de mantenimiento
-9. API Documentation - Si tu servicio expone APIs (RESTful, auth, rate limiting)
+## Templates Nuevos (esenciales para SRE moderno):
 
-🎯 Características Clave
+1. Service Catalog Entry - Registro centralizado para descubrimiento de servicios
+2. Incident Management - Response workflow, post-mortems, runbooks, comunicación
+3. Change Management - Tipos de cambios, aprobaciones, RFCs, ventanas de mantenimiento
+4. API Documentation - Si tu servicio expone APIs (RESTful, auth, rate limiting)
+
+## 🎯 Características Clave
 ✅ Production-ready - Basados en prácticas reales de empresas Fortune 500
 ✅ Compliance-aware - GDPR, SOC2, multi-región incluidos
 ✅ Automation-first - IaC, GitOps, CI/CD integrado
@@ -20,7 +21,25 @@ Templates Nuevos (esenciales para SRE moderno):
 ✅ Ejemplos prácticos - Código real, queries, scripts
 ✅ Multinacional - Consideraciones de timezone, data residency
 
-💡 Próximos Pasos Recomendados
+## Repository Structure
+
+```
+README.md                                  # This file
+docs/
+├── 01 architecture design template.md       # Documento de diseño de Arquitectura
+├── 02 deployment runbook template.md        # Documento de Deployment & Runbooks
+├── 03 deployment runbook template.md        # Documento de Deployment & Runbooks
+├── 04 service ownership raci template.md    # Documento de Service Ownership & RACI
+├── 05 observability monitoring template.md  # Documento de Observability & Monitoring
+├── 06 service catalog template.md           # Documento de Service Catalog Entry
+├── 07 incident management template.md       # Documento de Incident Management y Post-Mortem Template
+├── 08 change management template.md         # Documento de Gestión del cambio
+└── 09 api documentation template.md         # Documento de Documentación de las API
+
+
+```
+
+## 💡 Próximos Pasos Recomendados
 Adaptar estos templates a tu stack tecnológico específico
 Crear un repositorio de documentación centralizado
 Implementar el plan de estandarización (¿quieres que lo elabore?)
