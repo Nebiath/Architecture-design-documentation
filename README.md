@@ -14,6 +14,7 @@
 4. API Documentation - Si tu servicio expone APIs (RESTful, auth, rate limiting)
 
 ## 🎯 Características Clave
+
 ✅ Production-ready - Basados en prácticas reales de empresas Fortune 500
 ✅ Compliance-aware - GDPR, SOC2, multi-región incluidos
 ✅ Automation-first - IaC, GitOps, CI/CD integrado
