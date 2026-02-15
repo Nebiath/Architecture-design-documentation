@@ -746,7 +746,7 @@ PagerDuty          Service Catalog
 Slack  ←→  Datadog ←→ Grafana
 ```
 
----
+```mermaid
 config:
   theme: redux
 ---
@@ -765,6 +765,7 @@ flowchart TB
     n6@{ shape: rect}
     n7@{ shape: rect}
 
+```
 ---
 
 ## 👥 Roles & Responsibilities
