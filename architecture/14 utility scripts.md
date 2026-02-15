@@ -1118,4 +1118,4 @@ check:staleness:
 ---
 
 **Versión:** 1.0  
-**Última actualización:** 2024-03-15
+**Última actualización:** 15-02-2026
