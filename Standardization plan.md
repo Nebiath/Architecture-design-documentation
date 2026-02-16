@@ -750,20 +750,23 @@ Slack  ←→  Datadog ←→ Grafana
 config:
   theme: redux
 ---
-flowchart TB
-    n1[" "] --> n2["Commit"]
-    n2 --> n3["Revisión aprobadores"]
-    n3 -- Rechazado --> n1
-    n3 --> n4(["Gitops CI Pipeline"])
-    n4 --> n6["Notificación en Grupo de Teams responsable"] & n7["Linting, sintaxis y broken links"]
-    n7 --> n5["Pull request y merge"]
-
-    n1@{ icon: "fa:user", pos: "b"}
-    n2@{ shape: rounded}
-    n3@{ shape: diam}
-    n5@{ shape: rect}
-    n6@{ shape: rect}
-    n7@{ shape: rect}
+flowchart LR
+	Git[GitHub]
+	CI/CD[CI/CD]
+	Notion[Notion]
+	Alerta[Correo alerta]
+	Service[Service Catalog]
+	Teams[Microsoft Teams]
+	M360[M360]
+	Grafana[Grafana]
+	Git<-->CI/CD
+	CI/CD<-->Notion
+	Git-->Alerta
+	Alerta-->Teams
+	Teams<-->M360
+	M360<-->Grafana
+	Notion-->Service
+	Service-->Grafana
 
 ```
 ---
