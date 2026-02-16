@@ -747,9 +747,6 @@ Slack  ←→  Datadog ←→ Grafana
 ```
 
 ```mermaid
-config:
-  theme: redux
----
 flowchart LR
 	Git[GitHub]
 	CI/CD[CI/CD]
