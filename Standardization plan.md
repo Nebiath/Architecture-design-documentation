@@ -746,6 +746,26 @@ PagerDuty          Service Catalog
 Slack  ←→  Datadog ←→ Grafana
 ```
 
+```mermaid
+config:
+  theme: redux
+---
+flowchart TB
+    n1[" "] --> n2["Commit"]
+    n2 --> n3["Revisión aprobadores"]
+    n3 -- Rechazado --> n1
+    n3 --> n4(["Gitops CI Pipeline"])
+    n4 --> n6["Notificación en Grupo de Teams responsable"] & n7["Linting, sintaxis y broken links"]
+    n7 --> n5["Pull request y merge"]
+
+    n1@{ icon: "fa:user", pos: "b"}
+    n2@{ shape: rounded}
+    n3@{ shape: diam}
+    n5@{ shape: rect}
+    n6@{ shape: rect}
+    n7@{ shape: rect}
+
+```
 ---
 
 ## 👥 Roles & Responsibilities
