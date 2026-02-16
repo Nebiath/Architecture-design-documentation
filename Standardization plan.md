@@ -744,9 +744,11 @@ GitHub ←→ CI/CD ←→ Confluence
 PagerDuty          Service Catalog
    ↓                    ↓
 Slack  ←→  Datadog ←→ Grafana
+
 ```
 
 ```mermaid
+
 flowchart LR
 	Git[GitHub]
 	CI/CD[CI/CD]
@@ -766,6 +768,7 @@ flowchart LR
 	Service-->Grafana
 
 ```
+
 ---
 
 ## 👥 Roles & Responsibilities
