@@ -66,6 +66,31 @@
           │
           └──────────────▶ Notion (Manual/API)
 ```
+```mermaid
+flowchart TB
+    subgraph Azure [Azure DevOps - Cloud]
+    direction TB
+    Repos["`Azure-Repos
+           Git`"]
+    Pipelines[Azure-Pipelines]
+    Checks["`Linters
+        - Markdown
+        - Links
+        - Spelling`"]
+    Branch["`Branch Policy
+            + Reviewers`"]
+    Repos-->Pipelines
+    Pipelines-->Checks
+    Repos-->Branch
+    end
+    Teams[Microsoft Teams- Nativo]
+    Notion[Notion - Manual / API]
+    direction LR
+    Branch-->Teams
+    Branch-->Notion
+
+    style Azure fill:#e1f5ff
+```
 
 ---
 
