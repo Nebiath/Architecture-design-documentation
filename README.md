@@ -8,7 +8,7 @@
 
 ## Templates Nuevos (esenciales para SRE moderno):
 
-1. Service Catalog Entry - Registro centralizado para descubrimiento de servicios
+1. Service Catalog Entry - Registro centralizado para descubrimiento de serviciosª
 2. Incident Management - Response workflow, post-mortems, runbooks, comunicación
 3. Change Management - Tipos de cambios, aprobaciones, RFCs, ventanas de mantenimiento
 4. API Documentation - Si tu servicio expone APIs (RESTful, auth, rate limiting)
@@ -25,17 +25,23 @@
 ## Repository Structure
 
 ```
-README.md                                  # This file
+README.md                                      # This file
+Standardization plan.md                        # Propuesta de plan de estandarización
+architecture/
+├── 13 technical implementation guide.md       # Plan de Implementación Técnica para VM on premises
+├── 14 utility scripts.md                      # Scripts de automatización para el repo
+├── 15 azure devops implementation.md          # Plan de Implementación Técnica con Azure DevOps
+└── Plan estandarizacion documentacion sre.md  # Plan de Estandarización de Documentación de Arquitectura IT/SRE (Posible duplicado Eliminación TBD)
 docs/
-├── 01 architecture design template.md       # Documento de diseño de Arquitectura
-├── 02 deployment runbook template.md        # Documento de Deployment & Runbooks
-├── 03 deployment runbook template.md        # Documento de Deployment & Runbooks
-├── 04 service ownership raci template.md    # Documento de Service Ownership & RACI
-├── 05 observability monitoring template.md  # Documento de Observability & Monitoring
-├── 06 service catalog template.md           # Documento de Service Catalog Entry
-├── 07 incident management template.md       # Documento de Incident Management y Post-Mortem Template
-├── 08 change management template.md         # Documento de Gestión del cambio
-└── 09 api documentation template.md         # Documento de Documentación de las API
+├── 01 architecture design template.md         # Documento de diseño de Arquitectura
+├── 02 deployment runbook template.md          # Documento de Deployment & Runbooks
+├── 03 service ownership raci template.md      # Documento de Service Ownership & RACI
+├── 04 observability monitoring template.md    # Documento de Observability & Monitoring
+├── 05 service catalog template.md             # Documento de Service Catalog Entry
+├── 06 incident management template.md         # Documento de Incident Management y Post-Mortem Template
+├── 07 change management template.md           # Documento de Gestión del cambio
+├── 08 api documentation template.md           # Documento de Documentación de las API
+└── 09 09 repository structure guide.md        # Documento de Estructura de Repositorio para Documentación de Arquitectura IT
 
 
 ```
