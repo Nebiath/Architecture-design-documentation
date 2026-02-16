@@ -38,34 +38,7 @@
 
 ## 📋 Arquitectura con Azure DevOps
 
-```
-┌─────────────────────────────────────────────────┐
-│           Azure DevOps (Cloud)                  │
-│                                                 │
-│  ┌──────────────┐    ┌────────────────┐        │
-│  │ Azure Repos  │───▶│ Azure Pipelines│        │
-│  │ (Git)        │    │ (CI/CD)        │        │
-│  └──────┬───────┘    └────┬───────────┘        │
-│         │                  │                     │
-│         │                  ▼                     │
-│         │           ┌──────────────┐            │
-│         │           │   Linters    │            │
-│         │           │ - Markdown   │            │
-│         │           │ - Links      │            │
-│         │           │ - Spelling   │            │
-│         │           └──────────────┘            │
-│         │                                        │
-│         ▼                                        │
-│  ┌──────────────┐                               │
-│  │Branch Policy │  ← Required reviewers         │
-│  │+ Reviewers   │                               │
-│  └──────┬───────┘                               │
-└─────────┼────────────────────────────────────────┘
-          │
-          ├──────────────▶ Microsoft Teams (Nativo)
-          │
-          └──────────────▶ Notion (Manual/API)
-```
+
 ```mermaid
 flowchart TB
     subgraph Azure [Azure DevOps - Cloud]
@@ -88,8 +61,7 @@ flowchart TB
     direction LR
     Branch-->Teams
     Branch-->Notion
-
-    style Azure fill:#e1f5ff
+    
 ```
 
 ---
