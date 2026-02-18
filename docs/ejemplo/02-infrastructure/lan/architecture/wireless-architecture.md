@@ -6,19 +6,7 @@
 ## 1. Wireless Controller Architecture
 
 ### 1.1 Deployment Model: Centralized
-```
-Internet/WAN
-     │
-     ├─── Core Switches ───┐
-     │                     │
-     ├─ Wireless LAN Controller (WLC) - C9800-40
-     │  Management: 10.10.1.100
-     │
-     ├─ Access Points (APs)
-     │  ├─ Floor 1: AP01, AP02, AP03 ...
-     │  ├─ Floor 2: AP10, AP11, AP12 ...
-     │  └─ ...
-```
+
 ```mermaid
 graph TB
     subgraph INTERNET["Internet / WAN"]
