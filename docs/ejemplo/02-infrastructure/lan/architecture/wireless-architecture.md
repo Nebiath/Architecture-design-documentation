@@ -19,6 +19,82 @@ Internet/WAN
      │  ├─ Floor 2: AP10, AP11, AP12 ...
      │  └─ ...
 ```
+```mermaid
+graph TB
+    subgraph INTERNET["Internet / WAN"]
+        INT["Internet"]
+    end
+    
+    subgraph CORE["Core Network"]
+        CS1["Core Switch 1"]
+        CS2["Core Switch 2"]
+        CS1 <==>|VSS| CS2
+    end
+    
+    subgraph WLC["Wireless LAN Controllers (HA Pair)"]
+        WLC1["C9800-40 WLC<br/>Primary<br/>10.10.1.100<br/>Max: 2000 APs"]
+        WLC2["C9800-40 WLC<br/>Secondary<br/>10.10.1.101"]
+        WLC1 -.->|"HA<br/>Active-Standby"| WLC2
+    end
+    
+    subgraph APS_F1["Access Points - Floor 1"]
+        AP01["AP01<br/>C9120AXI-E<br/>Wi-Fi 6"]
+        AP02["AP02<br/>C9120AXI-E<br/>Wi-Fi 6"]
+        AP03["AP03<br/>C9120AXI-E<br/>Wi-Fi 6"]
+    end
+    
+    subgraph APS_F2["Access Points - Floor 2"]
+        AP10["AP10<br/>C9130AXI-E<br/>Wi-Fi 6E"]
+        AP11["AP11<br/>C9130AXI-E<br/>Wi-Fi 6E"]
+        AP12["AP12<br/>C9130AXI-E<br/>Wi-Fi 6E"]
+    end
+    
+    subgraph SSIDS["SSIDs Configured"]
+        SSID1["Corp-Secure<br/>WPA3-Enterprise<br/>802.1X RADIUS<br/>VLAN 30"]
+        SSID2["Corp-Guest<br/>WPA2-PSK<br/>Captive Portal<br/>VLAN 40"]
+        SSID3["Corp-IoT<br/>WPA2-PSK<br/>MAC Auth<br/>VLAN 50"]
+    end
+    
+    subgraph CLIENTS["Wireless Clients"]
+        CL1["Laptops"]
+        CL2["Smartphones"]
+        CL3["Tablets"]
+        CL4["IoT Devices"]
+    end
+    
+    INT --> CS1
+    INT --> CS2
+    CS1 ==>|"Management<br/>+ Data"| WLC1
+    CS2 ==>|"Management<br/>+ Data"| WLC2
+    
+    WLC1 -.->|"CAPWAP<br/>Control"| AP01
+    WLC1 -.->|"CAPWAP<br/>Control"| AP02
+    WLC1 -.->|"CAPWAP<br/>Control"| AP03
+    WLC1 -.->|"CAPWAP<br/>Control"| AP10
+    WLC1 -.->|"CAPWAP<br/>Control"| AP11
+    WLC1 -.->|"CAPWAP<br/>Control"| AP12
+    
+    AP01 -->|"2.4GHz<br/>5GHz"| CL1
+    AP02 -->|"2.4GHz<br/>5GHz"| CL2
+    AP10 -->|"2.4GHz<br/>5GHz<br/>6GHz"| CL3
+    AP11 -->|"2.4GHz<br/>5GHz<br/>6GHz"| CL4
+    
+    WLC1 -.- SSID1
+    WLC1 -.- SSID2
+    WLC1 -.- SSID3
+    
+    classDef coreStyle fill:#ff6b6b,stroke:#c92a2a,stroke-width:3px,color:#fff
+    classDef wlcStyle fill:#845ef7,stroke:#5f3dc4,stroke-width:3px,color:#fff
+    classDef apStyle fill:#4ecdc4,stroke:#087f5b,stroke-width:2px,color:#fff
+    classDef ssidStyle fill:#ffd43b,stroke:#f08c00,stroke-width:2px,color:#000
+    classDef clientStyle fill:#f9f9f9,stroke:#868e96,stroke-width:1px,color:#000
+    
+    class CS1,CS2 coreStyle
+    class WLC1,WLC2 wlcStyle
+    class AP01,AP02,AP03,AP10,AP11,AP12 apStyle
+    class SSID1,SSID2,SSID3 ssidStyle
+    class CL1,CL2,CL3,CL4 clientStyle
+```
 
 ### 1.2 Controller Specifications
 | Component | Value |
