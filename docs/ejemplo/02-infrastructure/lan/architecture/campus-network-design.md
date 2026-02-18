@@ -6,32 +6,91 @@
 ## 1. Topología Global Campus
 
 ### 1.1 Modelo Jerárquico Three-Tier
-```
-                    ┌──────────────────────────┐
-                    │      CORE LAYER          │
-                    │   (Layer 3 Routing)      │
-                    │  C9500-01 ↔ C9500-02     │
-                    │      (VSS Pair)          │
-                    └────────┬─────────┬───────┘
-                             │         │
-              ┌──────────────┴─────┬───┴──────────────┐
-              │                    │                   │
-    ┌─────────▼─────────┐ ┌───────▼────────┐ ┌───────▼────────┐
-    │  DISTRIBUTION      │ │  DISTRIBUTION  │ │  DISTRIBUTION  │
-    │  Floor 1-3         │ │  Floor 4-6     │ │  Floor 7-9     │
-    │ C9300-01 ↔ C9300-02│ │ C9300-03 ↔ ... │ │ C9300-07 ↔ ... │
-    │   (StackWise)      │ │  (StackWise)   │ │  (StackWise)   │
-    └─────────┬──────────┘ └────────┬───────┘ └────────┬───────┘
-              │                     │                   │
-        ┌─────┴──────┬──────┐      │              ┌────┴─────┐
-        │            │      │      ...             │          │
-    ┌───▼───┐  ┌────▼──┐ ┌─▼──┐              ┌───▼───┐  ┌───▼───┐
-    │ACCESS │  │ACCESS │ │... │              │ACCESS │  │ACCESS │
-    │C9200  │  │C9200  │ │    │              │C9200  │  │C9200  │
-    │ 48p   │  │ 48p   │ │    │              │ 48p   │  │ 48p   │
-    └───┬───┘  └───┬───┘ └────┘              └───┬───┘  └───┬───┘
-        │          │                              │          │
-     End-Users  End-Users                     End-Users  End-Users
+
+```mermaid
+
+graph TB
+    subgraph CORE["CORE LAYER (Layer 3 Routing)"]
+        C1["C9500-01<br/>Core Switch<br/>10.10.1.2"]
+        C2["C9500-02<br/>Core Switch<br/>10.10.1.3"]
+        C1 <==>|"VSS Link<br/>2x100G"| C2
+    end
+    
+    subgraph DIST1["DISTRIBUTION - Floors 1-3"]
+        D1["C9300-01<br/>Dist Switch<br/>10.10.1.10"]
+        D2["C9300-02<br/>Dist Switch<br/>10.10.1.11"]
+        D1 <==>|StackWise| D2
+    end
+    
+    subgraph DIST2["DISTRIBUTION - Floors 4-6"]
+        D3["C9300-03<br/>Dist Switch"]
+        D4["C9300-04<br/>Dist Switch"]
+        D3 <==>|StackWise| D4
+    end
+    
+    subgraph DIST3["DISTRIBUTION - Floors 7-9"]
+        D5["C9300-07<br/>Dist Switch"]
+        D6["C9300-08<br/>Dist Switch"]
+        D5 <==>|StackWise| D6
+    end
+    
+    subgraph ACCESS1["ACCESS LAYER - Floor 1"]
+        A1["C9200-48P<br/>Access Switch<br/>10.10.1.20<br/>PoE+ 740W"]
+        A2["C9200-48P<br/>Access Switch<br/>10.10.1.21<br/>PoE+ 740W"]
+        A3["C9200-48P<br/>Access Switch"]
+    end
+    
+    subgraph ACCESS2["ACCESS LAYER - Floor 7"]
+        A7["C9200-48P<br/>Access Switch"]
+        A8["C9200-48P<br/>Access Switch"]
+    end
+    
+    subgraph ENDUSERS1["End Users Floor 1"]
+        EU1["Workstations"]
+        EU2["IP Phones"]
+        EU3["Printers"]
+    end
+    
+    subgraph ENDUSERS2["End Users Floor 7"]
+        EU7["Workstations"]
+        EU8["IP Phones"]
+    end
+    
+    C1 ==>|"4x10G<br/>EtherChannel"| D1
+    C2 ==>|"4x10G<br/>EtherChannel"| D1
+    C1 ==>|"4x10G<br/>EtherChannel"| D3
+    C2 ==>|"4x10G<br/>EtherChannel"| D3
+    C1 ==>|"4x10G<br/>EtherChannel"| D5
+    C2 ==>|"4x10G<br/>EtherChannel"| D5
+    
+    D1 ==>|"2x10G<br/>LACP"| A1
+    D2 ==>|"2x10G<br/>LACP"| A1
+    D1 ==>|"2x10G<br/>LACP"| A2
+    D2 ==>|"2x10G<br/>LACP"| A2
+    D1 ==>|"2x10G<br/>LACP"| A3
+    D2 ==>|"2x10G<br/>LACP"| A3
+    
+    D5 ==>|"2x10G<br/>LACP"| A7
+    D6 ==>|"2x10G<br/>LACP"| A7
+    D5 ==>|"2x10G<br/>LACP"| A8
+    D6 ==>|"2x10G<br/>LACP"| A8
+    
+    A1 --> EU1
+    A2 --> EU2
+    A3 --> EU3
+    A7 --> EU7
+    A8 --> EU8
+    
+    classDef coreStyle fill:#ff6b6b,stroke:#c92a2a,stroke-width:3px,color:#fff
+    classDef distStyle fill:#4ecdc4,stroke:#087f5b,stroke-width:2px,color:#fff
+    classDef accessStyle fill:#95e1d3,stroke:#0c8599,stroke-width:2px,color:#000
+    classDef userStyle fill:#f9f9f9,stroke:#868e96,stroke-width:1px,color:#000
+    
+    class C1,C2 coreStyle
+    class D1,D2,D3,D4,D5,D6 distStyle
+    class A1,A2,A3,A7,A8 accessStyle
+    class EU1,EU2,EU3,EU7,EU8 userStyle
+
 ```
 
 ### 1.2 Roles por Capa
