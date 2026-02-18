@@ -92,6 +92,15 @@ graph TB
     class EU1,EU2,EU3,EU7,EU8 userStyle
 
 ```
+🎨 Características de los diagramas
+Colores diferenciados por capa:
+
+🔴 Core: Rojo (#ff6b6b)
+🔵 Distribution: Cyan (#4ecdc4)
+🟢 Access: Verde claro (#95e1d3)
+🟡 VLANs/SSIDs: Amarillo (#ffd43b)
+🟣 Controllers: Púrpura (#845ef7)
+⚪ End devices: Gris claro (#f9f9f9)
 
 ### 1.2 Roles por Capa
 
