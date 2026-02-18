@@ -83,6 +83,15 @@ graph TB
     class SSID1,SSID2,SSID3 ssidStyle
     class CL1,CL2,CL3,CL4 clientStyle
 ```
+🎨 Características de los diagramas
+Colores diferenciados por capa:
+
+🔴 Core: Rojo (#ff6b6b)
+🔵 Distribution: Cyan (#4ecdc4)
+🟢 Access: Verde claro (#95e1d3)
+🟡 VLANs/SSIDs: Amarillo (#ffd43b)
+🟣 Controllers: Púrpura (#845ef7)
+⚪ End devices: Gris claro (#f9f9f9)
 
 ### 1.2 Controller Specifications
 | Component | Value |
