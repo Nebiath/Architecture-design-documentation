@@ -615,6 +615,102 @@ graph TB
 └──────────────────────────────┘
 ```
 
+```mermaid
+graph TB
+    subgraph EXTERNAL["🌐 External Networks"]
+        INTERNET["Internet<br/>(Public)"]
+        AZURE_PUB["Azure Public<br/>Endpoints<br/>*.blob.core<br/>.windows.net"]
+    end
+    
+    subgraph PLANT_OT["🏭 Planta Industrial - Red OT"]
+        subgraph OT_ZONE["Purdue Level 3-2<br/>Network: 10.100.0.0/16"]
+            OT_SRV["Servidor OT<br/>10.100.10.15/32<br/>Script: Copy to IT<br/>Port: SMB Client"]
+            OT_EQ["Otros equipos OT<br/>10.100.10.16-20"]
+        end
+    end
+    
+    subgraph FW_ZONE["🔥 Checkpoint Firewall DMZ"]
+        FW["Checkpoint Firewall<br/>Stateful Inspection<br/>Deep Packet Inspection"]
+        
+        subgraph FW_RULES["Firewall Rules"]
+            RULE1["✅ Rule 1: OT→IT SMB<br/>Src: 10.100.10.15/32<br/>Dst: 192.168.10.50/32<br/>Svc: TCP 445<br/>Action: Accept<br/>Track: Log"]
+            RULE2["❌ Rule 2: OT→IT Deny All<br/>Src: 10.100.0.0/16<br/>Dst: 192.168.10.0/24<br/>Svc: Any<br/>Action: Drop<br/>Track: Log"]
+        end
+    end
+    
+    subgraph PLANT_IT["🏢 Planta Industrial - Red IT"]
+        subgraph IT_ZONE["Purdue Level 4<br/>Network: 192.168.10.0/24"]
+            VM_GW["VM Gateway<br/>192.168.10.50/32<br/>Ports:<br/>• Inbound: SMB 445<br/>• Outbound: HTTPS 443"]
+            IT_MGMT["IT Management<br/>192.168.1.0/24<br/>Jump servers<br/>RDP access"]
+        end
+    end
+    
+    subgraph EXPRESSROUTE["🔗 Azure ExpressRoute / VPN"]
+        ER["Private Connection<br/>1 Gbps<br/>Encrypted tunnel<br/>No public Internet"]
+    end
+    
+    subgraph AZURE_NET["☁️ Azure Cloud - Virtual Network"]
+        subgraph VNET["VNet: 10.0.0.0/16"]
+            subgraph NSG_SUBNET["Subnet: VM Gateway<br/>10.0.1.0/24<br/>NSG Applied"]
+                PRIV_EP["Private Endpoint<br/>10.0.1.10<br/>→ Blob Storage"]
+            end
+        end
+        
+        subgraph NSG_RULES["🛡️ NSG Rules"]
+            NSG1["✅ Allow HTTPS Out<br/>Src: 10.0.1.0/24<br/>Dst: Storage service tag<br/>Port: 443<br/>Priority: 100"]
+            NSG2["✅ Allow SMB In<br/>Src: 10.100.10.0/24<br/>Dst: 10.0.1.0/24<br/>Port: 445<br/>Priority: 200"]
+            NSG3["✅ Allow RDP In<br/>Src: 192.168.1.0/24<br/>Dst: 10.0.1.0/24<br/>Port: 3389<br/>Priority: 300"]
+            NSG4["❌ Deny All In<br/>Src: Any<br/>Dst: Any<br/>Port: Any<br/>Priority: 4096"]
+        end
+        
+        subgraph STORAGE["🗄️ Azure Storage"]
+            BLOB["Blob Storage Account<br/>industrialbackupweu<br/>Endpoint:<br/>Private only<br/>Public access: Disabled"]
+        end
+    end
+    
+    OT_SRV -->|"SMB 445<br/>Whitelist"| FW
+    FW -->|"Firewall<br/>Inspection"| RULE1
+    RULE1 -->|"Permit"| VM_GW
+    
+    OT_EQ -.->|"Blocked"| RULE2
+    
+    VM_GW -->|"HTTPS 443<br/>TLS 1.3<br/>Managed<br/>Identity"| ER
+    
+    IT_MGMT -->|"RDP 3389<br/>Admin access"| VM_GW
+    
+    ER -.->|"Private<br/>connectivity<br/>No Internet"| PRIV_EP
+    
+    NSG1 -.->|"Allow"| PRIV_EP
+    NSG2 -.->|"Allow"| PRIV_EP
+    NSG3 -.->|"Allow"| VM_GW
+    
+    PRIV_EP -->|"Internal<br/>Azure<br/>backbone"| BLOB
+    
+    INTERNET -.->|"❌ Blocked"| BLOB
+    AZURE_PUB -.->|"❌ Public<br/>access<br/>disabled"| BLOB
+    
+    classDef otStyle fill:#ffd43b,stroke:#f08c00,stroke-width:2px,color:#000
+    classDef fwStyle fill:#e63946,stroke:#9d0208,stroke-width:3px,color:#fff
+    classDef fwRuleStyle fill:#ff6b6b,stroke:#c92a2a,stroke-width:2px,color:#fff
+    classDef itStyle fill:#4ecdc4,stroke:#087f5b,stroke-width:2px,color:#fff
+    classDef erStyle fill:#845ef7,stroke:#5f3dc4,stroke-width:3px,color:#fff
+    classDef azureStyle fill:#0078d4,stroke:#004578,stroke-width:2px,color:#fff
+    classDef nsgStyle fill:#51cf66,stroke:#2f9e44,stroke-width:2px,color:#fff
+    classDef storageStyle fill:#74c0fc,stroke:#1c7ed6,stroke-width:2px,color:#000
+    classDef blockStyle fill:#f8f9fa,stroke:#868e96,stroke-width:2px,color:#000,stroke-dasharray: 5 5
+    
+    class OT_SRV,OT_EQ otStyle
+    class FW fwStyle
+    class RULE1,RULE2 fwRuleStyle
+    class VM_GW,IT_MGMT itStyle
+    class ER erStyle
+    class PRIV_EP azureStyle
+    class NSG1,NSG2,NSG3,NSG4 nsgStyle
+    class BLOB storageStyle
+    class INTERNET,AZURE_PUB blockStyle
+```
+
+
 **Security Groups/Firewall Rules:**
 
 **Checkpoint Firewall (OT → IT):**
