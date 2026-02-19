@@ -4,13 +4,12 @@
 - **Owner Team:** Cloud Architecture
 - **On-Call:** [Rotation link]
 - **Teams Channel:** @Cloud Architecture
-- **Status Page:** [URL]
 
 ## 🎯 Purpose
 The main objective is to determine the minimum time for the data to be transferred and archived and test that both the copy of information into Azure and the recovery are performed successfully.
 
 ## 🏗️ Architecture
-![Architecture Diagram](docs/architecture/diagrams/c4-context.png)
+![Architecture Diagram](diagrams/c4-context.png)
 
 ## 📊 SLOs
 | Metric | Target | Error Budget |
