@@ -1,82 +1,80 @@
-# # Azure Data Protection - Diseño de Arquitectura
+# Industrial Image Backup to Azure — Diseño de Arquitectura
 
-> **Version:** 1.2  
-> **Fecha:** 24-09-2024  
-> **Estado:** [Approved]  
-> **Autor:** [Jose Maria Genzor]  
-> **Service Owner:** [Roberto Morcillo]  
-> **Última Revisión:** 16-10-2024
+> **Version:** 1.0  
+> **Fecha:** 2025-02-19  
+> **Estado:** Approved  
+> **Autor:** Arquitectura IT  
+> **Service Owner:** Arquitectura IT — architecture-team@company.com  
+> **Última Revisión:** 2025-02-19
 
 ---
 
 ## 1. Executive Summary
 
 **Propósito del Servicio:**
-Due to a number of recent market reclamations, a necessity has been identified to clearly define a long-term archive period for Gestamp's OEM data images for quality inspection, such as SmartRay or Vitronic (Usually part measurements, soldering brazing - penetration -. tests of traction...), based on Mapvision or Inline3D software.
-
-The main objective is to determine the minimum time for the data to be transferred and archived and test that both the copy of information into Azure and the recovery are performed successfully.
+Sistema automatizado para backup de imágenes industriales desde redes OT hacia Azure Blob Storage, cumpliendo con el modelo Purdue de seguridad industrial y garantizando retención de largo plazo (30 años) con costes optimizados.
 
 **Scope:**
-This service
+- ✅ **Sí hace:** Backup automático de imágenes desde equipos OT → Azure, gestión de lifecycle policies, monitorización de transferencias
+- ❌ **No hace:** Procesamiento de imágenes, análisis en tiempo real, acceso directo desde OT a Azure (violación Purdue)
 
 **Stakeholders Clave:**
-
 | Rol | Nombre | Equipo | Contacto |
-| --- | --- | --- | --- |
-| Product Owner |     |     |     |
-| Service Owner | Roberto Morcillo | Cloud Architecture |     |
-| Tech Lead | Jose M Genzor | Cloud Architecture |     |
+|-----|--------|--------|----------|
+| Product Owner | [TBD] | Negocio Industrial | business-industrial@company.com |
+| Service Owner | Architecture Lead | Arquitectura IT | architecture-team@company.com |
+| Tech Lead | Cloud Architect | Public Cloud Team | cloud-team@company.com |
+| SRE Lead | Operations Manager | IT Operations | it-ops@company.com |
+
+---
 
 ## 2. Requisitos
 
 ### 2.1 Requisitos Funcionales
 
-| ID  | Requisito | Prioridad | Estado |
-| --- | --- | --- | --- |
-| RF-001 | The system must support High Availability (HA) configuration. | Must | ✅ Implementado |
-| RF-002 | The system must support Disaster Recovery (DR) configuration. | Must | ✅ Implementado |
-|     |     | Must/Should/Could |     |
+| ID | Requisito | Prioridad | Estado |
+|----|-----------|-----------|--------|
+| RF-001 | Copiar imágenes desde red OT a red IT a través de firewall Checkpoint | Must | ✅ Implementado |
+| RF-002 | Transferir imágenes desde gateway IT hacia Azure Blob Storage | Must | ✅ Implementado |
+| RF-003 | Soportar volumen variable entre 100-500 GB/mes por planta | Must | ✅ Implementado |
+| RF-004 | Retención de imágenes durante 30 años | Must | ✅ Implementado |
+| RF-005 | Automatización end-to-end sin intervención manual | Must | ✅ Implementado |
+| RF-006 | Lifecycle policies automáticas: Cold (1 año) → Archive (29 años) | Must | ✅ Implementado |
+| RF-007 | Despliegue en múltiples plantas (Europa y América) | Must | ✅ Implementado |
+| RF-008 | Monitoring de transferencias y alertas en caso de fallo | Must | ✅ Implementado |
 
 ### 2.2 Requisitos No Funcionales
 
 #### Performance
-
-- **Throughput esperado:** The system must support network connectivity of at leat 1 GBps.
-- **Latencia objetivo:**
-  - p50: [X ms]
-  - p95: [X ms]
-  - p99: [X ms]
-- **Concurrent users:** [X usuarios simultáneos]
+- **Throughput esperado:** 500 GB/mes/planta = ~17 GB/día = ~12 MB/min (pico: 50 MB/min durante ventana de transferencia)
+- **Latencia objetivo:** No crítica (transferencias asíncronas en ventana nocturna)
+- **Ventana de transferencia:** 22:00-06:00 horas locales (8 horas disponibles)
 
 #### Escalabilidad
-
-- **Horizontal scaling:** [Sí/No - Detalles]
-- **Vertical scaling:** [Sí/No - Detalles]
-- **Auto-scaling triggers:** [CPU > 70%, memoria > 80%, custom metrics]
+- **Horizontal scaling:** Sí — Cada planta tiene su propia VM gateway independiente
+- **Plantas soportadas:** Actualmente 15 plantas, escalable a 50+ sin cambios arquitectónicos
+- **Storage scaling:** Azure Blob Storage prácticamente ilimitado (exabytes)
 
 #### Disponibilidad
-
-- **Target availability:** [99.9% = 43.2 min/mes downtime]
-- **Maintenance windows:** [Día/hora permitidos para maintenance]
-- **Geographic distribution:** [Multi-región, single-región, multi-AZ]
+- **Target availability:** 99.5% mensual (ventana de transferencia)
+- **Maintenance windows:** Lunes 02:00-04:00 hora local de cada planta
+- **Geographic distribution:** Multi-región (Azure West Europe para plantas EU, Azure East US para plantas América)
 
 #### Seguridad
-
-- **Authentication:** [OAuth2, SAML, API Keys, mTLS]
-- **Authorization:** [RBAC, ABAC, políticas]
-- **Data encryption:**
-  - At rest: [Método]
-  - In transit: [TLS 1.3]
-- **Secrets management:** [Vault, AWS Secrets Manager, etc.]
-- **Compliance requirements:** [GDPR, SOC2, ISO27001, HIPAA, PCI-DSS, etc.]
+- **Authentication:** Service Principal con Managed Identity (VM gateway → Azure)
+- **Authorization:** RBAC en Azure (Storage Blob Data Contributor role)
+- **Data encryption:** 
+  - At rest: AES-256 (Azure Storage Service Encryption por defecto)
+  - In transit: TLS 1.3 (HTTPS para upload a Azure)
+- **Secrets management:** Azure Key Vault para almacenar SAS tokens y credentials
+- **Compliance requirements:** Modelo Purdue (ISA-95), ISO 27001, GDPR (datos EU residentes en EU)
 
 #### Compliance y Regulación
-
 | País/Región | Regulación | Requisitos Específicos | Owner |
-| --- | --- | --- | --- |
-| EU  | GDPR | Data residency, right to deletion |     |
-| USA | SOC2 | Audit logs, access controls |     |
-| [País] | [Regulación] |     |     |
+|-------------|------------|------------------------|-------|
+| EU | GDPR | Data residency en Azure West Europe | Arquitectura IT |
+| EU | Modelo Purdue (ISA-95) | Segmentación OT/IT, firewall obligatorio | Seguridad IT |
+| USA | No specific | Data residency en Azure East US | Arquitectura IT |
 
 ---
 
@@ -84,112 +82,190 @@ This service
 
 ### 3.1 Diagrama C4 - Nivel 1 (Context)
 
-```mermaid
----
-config:
-  layout: elk
----
-flowchart LR
- subgraph OP["On Premises"]
-        Repos["Industrial Data"]
-        Branch["Filesync Server"]
-        n2["Checkpoint"]
-  end
- subgraph s1["Azure"]
-        DataFac["Azure Data Factory"]
-        n3["Landing Page"]
-        n5["Lifecycle Policy"]
-        n6["Cold Tier"]
-        n7["Archive Tier"]
-  end
- subgraph s2["SD WAN"]
-        n1["WAN"]
-  end
-    Branch --> n1
-    Repos --> n2
-    n2 --> Branch
-    n1 --> n3
-    DataFac --> n5
-    n3 --> n6
-    n6 --> DataFac
-    n5 --> n7
-
-    n2@{ shape: rounded}
-    n3@{ shape: hex}
-    n5@{ shape: diam}
-    n6@{ shape: db}
-    n7@{ shape: db}
 ```
+┌────────────────────────────────────────────────────────────────┐
+│                        Planta Industrial                       │
+│                                                                 │
+│  ┌──────────────┐    Firewall    ┌──────────────┐            │
+│  │   Red OT     │   Checkpoint    │   Red IT     │            │
+│  │ (Level 3-2)  │────────────────▶│  (Level 4)   │            │
+│  │              │   SMB/443       │              │            │
+│  │ • Equipos    │                 │ • Gateway    │            │
+│  │   generan    │                 │   VM Windows │            │
+│  │   imágenes   │                 │              │            │
+│  └──────────────┘                 └──────┬───────┘            │
+│                                          │ HTTPS (TLS 1.3)    │
+└──────────────────────────────────────────┼────────────────────┘
+                                           │
+                                           │ Internet
+                                           │
+                                           ▼
+                              ┌─────────────────────────┐
+                              │      Azure Cloud        │
+                              │                         │
+                              │  ┌──────────────────┐  │
+                              │  │  Blob Storage    │  │
+                              │  │  • Cold (1y)     │  │
+                              │  │  • Archive (29y) │  │
+                              │  └──────────────────┘  │
+                              │                         │
+                              │  ┌──────────────────┐  │
+                              │  │  Monitor/Alerts  │  │
+                              │  └──────────────────┘  │
+                              └─────────────────────────┘
+```
+
+**Contexto:**
+El servicio actúa como puente seguro entre la red OT (Operational Technology) de plantas industriales y Azure Cloud, respetando el modelo Purdue de segmentación. Las imágenes generadas por equipos industriales en OT se copian a la VM gateway en IT, que luego las sube a Azure para almacenamiento de largo plazo.
 
 ### 3.2 Diagrama C4 - Nivel 2 (Containers)
 
 ```
-┌────────────────────────────────────────────┐
-│           [Tu Servicio]                    │
-│                                            │
-│  ┌─────────┐  ┌─────────┐  ┌──────────┐  │
-│  │   API   │  │ Worker  │  │  Cache   │  │
-│  │ Gateway │  │ Service │  │  Redis   │  │
-│  └────┬────┘  └────┬────┘  └──────────┘  │
-│       │            │                       │
-│       └────────────┴───────────┐          │
-│                                │          │
-│                         ┌──────▼──────┐   │
-│                         │  PostgreSQL │   │
-│                         └─────────────┘   │
-└────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                     VM Gateway Windows (IT Network)                 │
+│                                                                      │
+│  ┌────────────────────────────────────────────────────────────────┐│
+│  │                    File System (D:\)                            ││
+│  │  ┌─────────────┐   ┌─────────────┐   ┌──────────────┐        ││
+│  │  │  Incoming/  │   │  Staging/   │   │ Processed/   │        ││
+│  │  │  (from OT)  │──▶│  (temp)     │──▶│ (uploaded)   │        ││
+│  │  └─────────────┘   └─────────────┘   └──────────────┘        ││
+│  └────────────────────────────────────────────────────────────────┘│
+│                                                                      │
+│  ┌────────────────────────────────────────────────────────────────┐│
+│  │              PowerShell Scripts + Task Scheduler                ││
+│  │  ┌──────────────┐  ┌──────────────┐  ┌───────────────┐       ││
+│  │  │ 1. Monitor   │  │ 2. Upload    │  │ 3. Cleanup    │       ││
+│  │  │    Incoming  │─▶│    to Azure  │─▶│    & Archive  │       ││
+│  │  │    (every    │  │    (Azcopy)  │  │    (delete    │       ││
+│  │  │     5 min)   │  │              │  │     local)    │       ││
+│  │  └──────────────┘  └──────────────┘  └───────────────┘       ││
+│  └────────────────────────────────────────────────────────────────┘│
+│                                                                      │
+│  ┌────────────────────────────────────────────────────────────────┐│
+│  │                  Azure PowerShell Modules                       ││
+│  │  • Az.Storage (upload to Blob)                                 ││
+│  │  • Az.Monitor (send metrics)                                   ││
+│  │  • Managed Identity (authentication)                           ││
+│  └────────────────────────────────────────────────────────────────┘│
+└──────────────────────────────────────────────────────────────────────┘
+                                │
+                                │ HTTPS (443)
+                                ▼
+                    ┌────────────────────────┐
+                    │   Azure Blob Storage   │
+                    │                        │
+                    │  Container per plant:  │
+                    │  plant-{code}-images   │
+                    │                        │
+                    │  Lifecycle Policy:     │
+                    │  0-365d → Cold         │
+                    │  365d+ → Archive       │
+                    └────────────────────────┘
 ```
 
 **Componentes principales:**
+1. **File System (D:\):** Directorio estructurado para gestionar flujo de imágenes
+   - `D:\ImageBackup\Incoming\` — Destino de copias desde OT (SMB share)
+   - `D:\ImageBackup\Staging\` — Temporal durante procesamiento
+   - `D:\ImageBackup\Processed\` — Post-upload (antes de delete)
+   
+2. **PowerShell Automation:** Scripts programados en Task Scheduler
+   - `Monitor-IncomingImages.ps1` — Detecta nuevos archivos (cada 5 min)
+   - `Upload-ToAzure.ps1` — Usa AzCopy para upload masivo
+   - `Cleanup-LocalFiles.ps1` — Elimina locales después de confirmación upload
+   
+3. **Azure PowerShell Modules:** SDK para interacción con Azure
+   - `Az.Storage` — Upload de blobs
+   - `Az.Monitor` — Envío de métricas custom
+   - Managed Identity — Authentication sin passwords
 
-1. **API Gateway:** [Kong, Nginx, AWS API Gateway] - [Propósito]
-2. **Application Service:** [Node.js, Python, Java] - [Propósito]
-3. **Worker/Queue:** [RabbitMQ, SQS, Kafka] - [Propósito]
-4. **Cache:** [Redis, Memcached] - [Propósito]
-5. **Database:** [PostgreSQL, MongoDB, DynamoDB] - [Propósito]
+4. **Azure Blob Storage:** Almacenamiento final con lifecycle management
+   - Container por planta: `plant-{factorycode}-images`
+   - Hot tier: NO usado (coste alto)
+   - Cool tier: Primeros 365 días
+   - Archive tier: Después de 365 días (resto de 29 años)
 
 ### 3.3 Technology Stack
 
 | Layer | Technology | Version | Justificación |
-| --- | --- | --- | --- |
-| Load Balancer |     |     |     |
-| Web Server |     |     |     |
-| Application |     |     |     |
-| Message Queue |     |     |     |
-| Cache |     |     |     |
-| Database |     |     |     |
-| Monitoring |     |     |     |
-| Logging |     |     |     |
+|-------|------------|---------|---------------|
+| Gateway OS | Windows Server 2022 | Standard | Estándar corporativo IT, integración AD, PowerShell nativo |
+| Automation | PowerShell | 7.4 + Task Scheduler | Scripting nativo Windows, excelente integración Azure |
+| Transfer Tool | AzCopy | v10.x | Optimizado para Azure, resume en fallos, multi-threaded |
+| Azure SDK | Az.Storage PowerShell | 6.x | API oficial Azure para Blob operations |
+| Authentication | Managed Identity | — | Sin gestión de passwords, rotación automática |
+| Storage | Azure Blob Storage | — | Durabilidad 99.999999999%, lifecycle policies nativas |
+| Monitoring | Azure Monitor + Log Analytics | — | Integración nativa Azure, alertas automáticas |
+| Networking | Azure ExpressRoute / VPN | — | Conectividad privada planta → Azure (no Internet público) |
 
 ### 3.4 Data Flow
 
 ```
-1. Request Flow:
-   User → CDN → Load Balancer → API Gateway → Auth Service → Application → Database
+1. Generation Flow (OT → IT):
+   [Equipo OT] → genera imagen → guarda en \\ot-share\images
+                                              │
+                                              ▼
+   [Firewall Checkpoint] ← permite SMB (445) ← [Script OT copia a IT]
+                                              │
+                                              ▼
+   [VM Gateway IT] → \\gateway-vm\D$\ImageBackup\Incoming\
 
-2. Async Flow:
-   Application → Message Queue → Worker → External API → Database
+2. Upload Flow (IT → Azure):
+   [Task Scheduler] ejecuta cada 5 min
+                │
+                ▼
+   [Monitor-IncomingImages.ps1] detecta nuevos archivos
+                │
+                ▼
+   [Upload-ToAzure.ps1] → AzCopy
+                │
+                ▼
+   [HTTPS TLS 1.3] → Azure Blob Storage
+                │
+                ▼
+   [Confirmation] → mueve a Processed/
+                │
+                ▼
+   [Cleanup-LocalFiles.ps1] → delete después 7 días
+
+3. Lifecycle Flow (Azure interno):
+   [Upload] → Hot tier (NO, skip directo a Cold)
+           │
+           ▼
+   [0-365 días] → Cool tier ($0.01/GB/mes)
+           │
+           ▼
+   [365+ días] → Archive tier ($0.00099/GB/mes)
+           │
+           └─ Retención 30 años total
 ```
 
 **Descripción detallada:**
-[Explicar cómo fluyen los datos a través del sistema]
+1. **Generación OT:** Equipos industriales (cámaras, sensores, PLCs) generan imágenes y las almacenan en share local de red OT
+2. **Transferencia OT→IT:** Script en servidor OT copia imágenes a través del firewall Checkpoint (puerto SMB 445 permitido con IP whitelisting) hacia share SMB en VM gateway IT
+3. **Detección:** Task Scheduler ejecuta script PowerShell cada 5 minutos que escanea carpeta `Incoming/`
+4. **Upload:** AzCopy transfiere archivos a Azure Blob con retry automático si falla
+5. **Verificación:** Script verifica MD5 hash de upload exitoso
+6. **Limpieza:** Archivos locales se mueven a `Processed/` y se eliminan después de 7 días (ventana de troubleshooting)
+7. **Lifecycle:** Azure aplica automáticamente policies para mover Cool → Archive después de 1 año
 
 ### 3.5 Dependencias
 
 #### Upstream Dependencies (servicios que usamos)
 
 | Servicio | Criticidad | SLO | Contact | Fallback Strategy |
-| --- | --- | --- | --- | --- |
-| Auth Service | Critical | 99.95% | auth-team@company.com | Cache de tokens, circuit breaker |
-| Payment Gateway | Critical | 99.9% | payments@company.com | Retry con exponential backoff |
-| Email Service | Medium | 99.5% | infra@company.com | Queue para reintentos |
+|----------|-----------|-----|---------|-------------------|
+| Azure Blob Storage | Critical | 99.99% | azure-support@ | Retry con exponential backoff, queue local si Azure down >1h |
+| Active Directory | Critical | 99.95% | windows-team@ | Cached credentials en VM (5 días) |
+| Checkpoint Firewall | Critical | 99.9% | network-team@ | Sin fallback - requiere conectividad OT-IT |
+| Azure ExpressRoute | High | 99.95% | network-team@ | Fallback a VPN site-to-site si ExpressRoute cae |
 
 #### Downstream Dependencies (servicios que nos usan)
 
 | Servicio | Owner | Comunicación | Impacto si fallamos |
-| --- | --- | --- | --- |
-| Mobile App | mobile-team@ | REST API | Usuarios no pueden [acción] |
-| Analytics | data-team@ | Kafka events | Dashboards desactualizados |
+|----------|-------|--------------|---------------------|
+| Ninguno | — | — | Las imágenes no se respaldan, pérdida de datos históricos para análisis futuro |
 
 ---
 
@@ -198,35 +274,35 @@ flowchart LR
 ### 4.1 Definición de SLIs
 
 | SLI | Métrica | Fórmula | Fuente de Datos |
-| --- | --- | --- | --- |
-| Availability | % de requests exitosos | (successful_requests / total_requests) * 100 | Load balancer logs |
-| Latency | % requests < threshold | (requests_under_300ms / total_requests) * 100 | APM (Datadog/NewRelic) |
-| Error Rate | % de errors 5xx | (5xx_errors / total_requests) * 100 | Application logs |
+|-----|---------|---------|-----------------|
+| Upload Success Rate | % de archivos subidos exitosamente | (successful_uploads / total_files_detected) * 100 | PowerShell logs + Azure Monitor |
+| Upload Latency | Tiempo desde detección hasta confirmación en Azure | avg(time_uploaded - time_detected) | Custom metrics Azure Monitor |
+| Storage Availability | % de tiempo que Azure Blob está accesible | Uptime reportado por Azure | Azure Service Health |
+| Data Integrity | % de archivos con MD5 hash correcto | (files_with_valid_hash / total_uploaded) * 100 | AzCopy logs |
 
 ### 4.2 SLO Targets
 
 | SLO | Target | Measurement Window | Error Budget |
-| --- | --- | --- | --- |
-| Availability | 99.9% | 30 días | 43.2 min/mes |
-| Latency (p95) | < 300ms | 30 días | 5% de requests pueden ser más lentos |
-| Error Rate | < 0.1% | 30 días | 10 errors por 10,000 requests |
+|-----|--------|-------------------|--------------|
+| Upload Success Rate | 99.5% | 30 días | 0.5% = ~15 archivos fallidos de 3000/mes |
+| Upload Latency (avg) | < 30 min | 30 días | El 95% de archivos deben subir en < 30 min desde detección |
+| Storage Availability | 99.9% | 30 días | Dependiente de Azure SLA (fuera de nuestro control) |
+| Data Integrity | 100% | 30 días | 0 archivos corruptos aceptados |
 
 ### 4.3 SLA (Customer-Facing)
 
-**Availability SLA:** 99.5% mensual
+**Upload SLA:** 99% mensual (medido como % de archivos subidos exitosamente)
 
 **Consecuencias de incumplimiento:**
-
-- < 99.5%: [10% de crédito]
-- < 99.0%: [25% de crédito]
-- < 98.0%: [50% de crédito]
+- < 99%: Revisión interna y reporte a management
+- < 95%: Escalado a CTO + plan de mejora obligatorio
+- < 90%: Servicio considerado en fallo crítico
 
 **Exclusiones del SLA:**
-
-- Maintenance programado (con 72h de aviso)
-- Problemas de upstream dependencies fuera de nuestro control
-- Ataques DDoS
-- Force majeure
+- Mantenimiento programado de Azure (notificado con 7 días de antelación)
+- Fallos en red OT (responsabilidad de IT local de planta)
+- Fallos del firewall Checkpoint (responsabilidad de Network team)
+- Cortes eléctricos en planta sin UPS
 
 ---
 
@@ -235,32 +311,41 @@ flowchart LR
 ### 5.1 Current Capacity
 
 | Recurso | Capacidad Actual | Utilización Actual | Máx. Capacidad |
-| --- | --- | --- | --- |
-| Compute (vCPU) | 64 cores | 45% (avg) | 128 cores |
-| Memory | 256 GB | 60% (avg) | 512 GB |
-| Storage | 2 TB | 1.2 TB usado | 10 TB |
-| Database IOPS | 10,000 | 6,000 (avg) | 20,000 |
-| Network Bandwidth | 10 Gbps | 3 Gbps (peak) | 20 Gbps |
+|---------|------------------|-------------------|----------------|
+| VM Gateway (vCPU) | 4 vCPU | 15% (avg) | 8 vCPU (upgrade disponible) |
+| VM Gateway (RAM) | 16 GB | 6 GB usado (37%) | 32 GB (upgrade disponible) |
+| Local Storage (D:\) | 1 TB SSD | 150 GB usado (15%) | 2 TB (expandible) |
+| Azure Blob Storage | Ilimitado | 7.5 TB (15 plantas × 500 GB/mes × 1 año) | Prácticamente ilimitado |
+| Network Bandwidth | 1 Gbps (ExpressRoute) | 50 Mbps (peak) | 10 Gbps (upgrade disponible) |
+
+**Rationale for sizing:**
+- **500 GB/mes máximo por planta** = ~17 GB/día = ~12 MB/min promedio
+- **Ventana de 8 horas** (22:00-06:00) = 480 minutos disponibles
+- **Bandwidth requerido:** 17 GB / 480 min = **35 MB/min = 4.7 Mbps** (peak: 10 Mbps)
+- **Muy por debajo de 1 Gbps disponible**
 
 ### 5.2 Growth Projections
 
 **Historical Growth:**
-
-- Usuarios: [+20% YoY]
-- Requests: [+35% YoY]
-- Data: [+50% YoY]
+- Plantas: +3 plantas/año
+- Volumen por planta: +10% YoY (mejores cámaras, mayor resolución)
 
 **Projected Needs (12 meses):**
+- Plantas: 18 plantas (actualmente 15)
+- Volumen total: 9 TB/mes (18 plantas × 500 GB)
+- Storage acumulado (Cool): 9 TB (año 1)
+- Storage acumulado (Archive): 0 TB (aún no llegamos a 365 días)
 
-- Compute: [80 cores]
-- Memory: [320 GB]
-- Storage: [3 TB]
+**Projected Needs (5 años):**
+- Plantas: 30 plantas
+- Storage acumulado (Cool): 15 TB (año actual)
+- Storage acumulado (Archive): 180 TB (años 1-5 en Archive)
 
 **Scaling Triggers:**
-
-- CPU > 70% sustained for 10 min → Add instances
-- Memory > 80% → Vertical scaling review
-- Storage > 70% → Expand volumes
+- VM CPU > 60% sustained for 30 min → Upgrade a 8 vCPU
+- Local disk > 700 GB → Expand a 2 TB
+- Azure bandwidth > 500 Mbps sustained → Upgrade ExpressRoute a 2 Gbps
+- Número de plantas > 50 → Evaluar modelo hub-and-spoke con VMs regionales
 
 ---
 
@@ -269,29 +354,33 @@ flowchart LR
 ### 6.1 RPO/RTO
 
 | Tier | RTO (Recovery Time Objective) | RPO (Recovery Point Objective) |
-| --- | --- | --- |
-| Tier 1 (Critical) | < 1 hora | < 5 minutos |
-| Tier 2 (Important) | < 4 horas | < 30 minutos |
-| Tier 3 (Normal) | < 24 horas | < 24 horas |
+|------|-------------------------------|-------------------------------|
+| Tier 2 (Important) | < 8 horas | < 24 horas (máximo 1 día de imágenes perdidas) |
 
-**Clasificación de este servicio:** [Tier X]
+**Clasificación de este servicio:** Tier 2 (Important)
+
+**Justificación:** No es crítico para operaciones en tiempo real (Tier 1), pero pérdida de más de 1 día de imágenes impacta análisis histórico y compliance.
 
 ### 6.2 Backup Strategy
 
 | Componente | Frecuencia | Retención | Storage | Tested? |
-| --- | --- | --- | --- | --- |
-| Database | Continuous (PITR) | 30 días | S3 Cross-Region | ✅ Mensual |
-| Configuration | On change | Indefinido | Git | ✅ En cada deploy |
-| Application State | Diario | 7 días | S3  | ✅ Trimestral |
+|------------|-----------|-----------|---------|---------|
+| Azure Blob Storage | Redundancia GRS (Geo-Redundant) | 30 años (lifecycle) | Azure (región primaria + secundaria) | ✅ Azure nativo |
+| VM Gateway (OS) | Snapshot semanal | 4 semanas | Azure Managed Disks | ✅ Trimestral |
+| Scripts PowerShell | On change | Indefinido | Git repository (Azure DevOps) | ✅ CI/CD |
+| Configuración VM | Ansible playbook | Indefinido | Git repository | ✅ En cada deploy |
+
+**Nota:** Las imágenes en Azure Blob Storage tienen replicación GRS automática (copia en región secundaria), lo que garantiza durabilidad 99.999999999%.
 
 ### 6.3 Disaster Scenarios
 
 | Escenario | Probabilidad | Impacto | Estrategia de Recovery |
-| --- | --- | --- | --- |
-| AZ failure | Low | High | Automatic failover a otra AZ (< 5 min) |
-| Region failure | Very Low | Critical | Manual failover a DR region (< 1h) |
-| Data corruption | Medium | High | Point-in-time recovery desde backup |
-| Security breach | Low | Critical | Incident response plan → Restore desde clean backup |
+|-----------|--------------|---------|------------------------|
+| VM Gateway failure | Medium | Medium | Rebuild VM desde Ansible playbook (2-4h) + reanudar uploads desde queue local |
+| Azure región primaria down | Very Low | High | Azure failover automático a región secundaria GRS (RTO: < 1h) |
+| Pérdida de datos en Azure | Very Low | Critical | Imposible (GRS durability), pero retener copias locales 7 días como safety net |
+| Firewall Checkpoint down | Low | High | Coordinar con Network team urgente, backup manual mientras tanto |
+| Corrupción de datos (malware) | Low | High | Soft delete habilitado en Azure (recuperar archivos borrados accidentalmente 14 días) |
 
 ---
 
@@ -300,88 +389,198 @@ flowchart LR
 ### 7.1 Security Controls
 
 | Control | Implementado | Herramienta | Notas |
-| --- | --- | --- | --- |
-| WAF | ✅   | CloudFlare/AWS WAF | Rules para OWASP Top 10 |
-| DDoS Protection | ✅   | CloudFlare |     |
-| IDS/IPS | ✅   | Snort/Suricata |     |
-| Vulnerability Scanning | ✅   | Qualys/Nessus | Semanal |
-| Secrets Rotation | ✅   | Vault | 90 días |
-| MFA | ✅   | Okta | Para acceso admin |
-| Audit Logging | ✅   | Splunk | Retención 1 año |
+|---------|--------------|-------------|-------|
+| Network Segmentation (Purdue) | ✅ | Checkpoint Firewall | OT Level 3 → IT Level 4 con whitelist IPs |
+| Encryption at rest | ✅ | Azure SSE (AES-256) | Automático en Azure Blob Storage |
+| Encryption in transit | ✅ | TLS 1.3 (HTTPS) | Todos los uploads a Azure |
+| Authentication | ✅ | Managed Identity | VM gateway autenticada en Azure sin passwords |
+| Authorization | ✅ | Azure RBAC | Storage Blob Data Contributor role (least privilege) |
+| Firewall rules | ✅ | Checkpoint + NSG Azure | Solo puerto 443 outbound desde VM, SMB 445 desde OT (IP whitelist) |
+| Audit Logging | ✅ | Azure Storage logs | Todos los accesos a Blob Storage logged |
+| Antivirus | ✅ | Windows Defender | Scan de archivos en `Incoming/` antes de upload |
+| File Integrity | ✅ | MD5 hash verification | AzCopy verifica integridad en cada upload |
 
 ### 7.2 Data Classification
 
 | Tipo de Dato | Clasificación | Cifrado | Acceso | Retención |
-| --- | --- | --- | --- | --- |
-| PII (nombre, email) | Confidential | AES-256 | Need-to-know | Según GDPR |
-| Financial data | Restricted | AES-256 + tokenization | Finance team only | 7 años |
-| Logs | Internal | TLS in-transit | Ops teams | 1 año |
+|--------------|---------------|---------|--------|-----------|
+| Imágenes industriales | Internal | AES-256 at rest + TLS 1.3 in transit | Solo Business + Cloud team | 30 años |
+| Logs de transferencia | Internal | TLS 1.3 in transit | IT Ops + Cloud team | 1 año |
+| Configuración (secrets) | Confidential | Azure Key Vault | Solo Cloud team (break-glass) | Indefinido |
 
 ### 7.3 Network Security
 
 ```
-Internet
-   ↓
-[CDN/DDoS Protection]
-   ↓
-[WAF]
-   ↓
-[Public Subnet - Load Balancer]
-   ↓
-[Private Subnet - Application]
-   ↓
-[Isolated Subnet - Database]
+┌──────────────────┐
+│   Red OT         │
+│  (10.x.x.x/16)   │ Level 3-2 (Purdue)
+└────────┬─────────┘
+         │
+         │ Port: SMB 445
+         │ Source IPs: 10.x.x.10-20 (whitelisted)
+         ▼
+  ┌────────────────┐
+  │  Checkpoint FW  │ Stateful inspection + ACLs
+  └────────┬────────┘
+         │
+         ▼
+┌──────────────────┐
+│   Red IT         │
+│ (192.168.x.x/24) │ Level 4 (Purdue)
+│                  │
+│ VM Gateway:      │
+│ 192.168.10.50    │
+└────────┬─────────┘
+         │
+         │ Port: HTTPS 443 (outbound only)
+         │ Destination: *.blob.core.windows.net
+         │ Method: Azure ExpressRoute (private)
+         ▼
+┌──────────────────────────────┐
+│  Azure VNet                  │
+│  (10.0.0.0/16)               │
+│                              │
+│  NSG Rules:                  │
+│  • Allow 443 from VM subnet  │
+│  • Deny all other inbound    │
+│                              │
+│  ┌────────────────────────┐ │
+│  │  Blob Storage Account  │ │
+│  │  • Private Endpoint    │ │
+│  │  • No public access    │ │
+│  └────────────────────────┘ │
+└──────────────────────────────┘
 ```
 
 **Security Groups/Firewall Rules:**
 
-- Load Balancer: Allow 443 from 0.0.0.0/0
-- Application: Allow 8080 from Load Balancer only
-- Database: Allow 5432 from Application only
+**Checkpoint Firewall (OT → IT):**
+- Allow: TCP 445 (SMB) from 10.x.x.10-20 to 192.168.10.50
+- Deny: All other traffic from OT to IT
+
+**VM Gateway (IT → Azure):**
+- Allow: TCP 443 (HTTPS) outbound to *.blob.core.windows.net
+- Deny: All inbound from Internet
+- Allow: RDP 3389 from IT management subnet (192.168.1.0/24)
+
+**Azure NSG:**
+- Allow: HTTPS 443 from VM Gateway private IP via ExpressRoute
+- Deny: All public Internet access to Storage Account
 
 ---
 
 ## 8. Cost Estimation
 
-### 8.1 Monthly Cost Breakdown
+### 8.1 Monthly Cost Breakdown (por planta)
 
 | Componente | Provider | Specs | Costo Mensual (USD) |
-| --- | --- | --- | --- |
-| Compute (EC2/VMs) | AWS | 4x m5.xlarge | $480 |
-| Database (RDS) | AWS | db.r5.large Multi-AZ | $620 |
-| Storage (S3/EBS) | AWS | 2TB | $150 |
-| Load Balancer | AWS | ALB | $30 |
-| Data Transfer | AWS | 5TB out | $450 |
-| Monitoring | Datadog | 10 hosts | $150 |
-| Logging | Splunk | 50GB/day | $300 |
-| **TOTAL** |     |     | **$2,180** |
+|------------|----------|-------|---------------------|
+| VM Gateway (IT) | Azure | Standard_D4s_v5 (4 vCPU, 16 GB) | $140 |
+| Local Storage (VM) | Azure | 1 TB Premium SSD | $135 |
+| Azure Blob Storage (Cool) | Azure | 500 GB (primeros 365 días) | $5 (500 GB × $0.01/GB) |
+| Azure Blob Storage (Archive) | Azure | 0 GB (aún no aplica año 1) | $0 |
+| Data Transfer OUT | Azure | Mínimo (solo API calls) | $2 |
+| ExpressRoute (compartido) | Azure | Prorrateado entre plantas | $50 |
+| Azure Monitor | Azure | Métricas custom | $5 |
+| **TOTAL por planta (año 1)** | | | **$337/mes** |
 
-### 8.2 Cost Optimization Opportunities
+### 8.2 Proyección de Costes Long-term
 
-- [ ] Reserved Instances (save 30-40%)
-- [ ] Spot instances for non-critical workloads
-- [ ] S3 lifecycle policies para logs antiguos
-- [ ] Right-sizing de instancias basado en métricas
+**Año 1 (storage en Cool tier):**
+- 15 plantas × $337/mes = **$5,055/mes** = **$60,660/año**
+- Storage: 15 plantas × 500 GB × 12 meses = 90 TB acumulado (todo en Cool)
+
+**Año 2 (storage: 50% Cool, 50% Archive):**
+- VMs: $4,200/mes (sin cambios)
+- Storage Cool: 90 TB × $0.01/GB = $900/mes
+- Storage Archive: 90 TB × $0.00099/GB = $89/mes
+- **Total año 2:** ~$5,200/mes = **$62,400/año**
+
+**Año 5 (storage: 20% Cool, 80% Archive):**
+- VMs: $4,200/mes
+- Storage Cool: 90 TB (último año) × $0.01/GB = $900/mes
+- Storage Archive: 360 TB (años 1-4) × $0.00099/GB = $356/mes
+- **Total año 5:** ~$5,500/mes = **$66,000/año**
+
+**Año 30 (storage: 3.3% Cool, 96.7% Archive):**
+- VMs: $4,200/mes (asumiendo inflación 0% - será mayor)
+- Storage Cool: 90 TB × $0.01/GB = $900/mes
+- Storage Archive: 2,610 TB (29 años) × $0.00099/GB = $2,584/mes
+- **Total año 30:** ~$7,700/mes = **$92,400/año**
+
+### 8.3 Cost Optimization Opportunities
+
+- [x] **Azure Reserved Instances para VMs:** Ahorro 30-40% ($140 → $98/mes/VM) — **IMPLEMENTAR**
+- [x] **Upload directo a Archive tier (sin Cool):** Azure no permite, requiere pasar por Cool primero — **NO DISPONIBLE**
+- [x] **Compresión de imágenes:** Evaluar compresión JPEG → WebP (30% reducción) — **A EVALUAR**
+- [x] **Reducir retención local de 7 días a 3 días:** Ahorro mínimo en disk — **OPCIONAL**
+- [x] **Azure Spot VMs:** No recomendado (servicio requiere disponibilidad 24/7) — **NO APLICAR**
+- [x] **Lifecycle directo a Archive después de 30 días (en lugar de 365):** Ahorro significativo, evaluar requisitos de acceso — **EVALUAR con Business**
+
+**Recomendación:** Implementar Reserved Instances (ahorro ~$630/mes = $7,560/año para 15 plantas).
 
 ---
 
 ## 9. Decision Log (ADRs)
 
-### ADR-001: Elección de Base de Datos
+### ADR-001: Azure Blob Storage en lugar de on-premise NAS
 
-**Fecha:** 2024-03-15  
+**Fecha:** 2025-01-15  
 **Estado:** Accepted  
-**Contexto:** Necesitamos una base de datos para [use case]  
-**Decisión:** PostgreSQL en lugar de MongoDB  
+**Contexto:** Necesitamos almacenar imágenes industriales durante 30 años con alta durabilidad  
+**Decisión:** Azure Blob Storage con lifecycle policies (Cool → Archive) en lugar de NAS on-premise  
 **Consecuencias:**
+- ✅ Durabilidad 99.999999999% (11 nines) — imposible lograr on-premise
+- ✅ Sin CAPEX (no comprar hardware NAS)
+- ✅ Escalabilidad ilimitada
+- ✅ Lifecycle policies automáticas
+- ❌ Costes operativos (OPEX) crecen linealmente con datos
+- ❌ Requiere conectividad a Azure (ExpressRoute)
 
-- ✅ Transacciones ACID
-- ✅ Madurez y soporte
-- ❌ Menos flexible para schema changes
+### ADR-002: Cool tier 1 año, luego Archive (en lugar de Archive inmediato)
 
-### ADR-002: [Título]
+**Fecha:** 2025-01-20  
+**Estado:** Accepted  
+**Contexto:** Azure no permite upload directo a Archive tier; requiere mínimo en Cool/Hot  
+**Decisión:** Mantener imágenes en Cool tier primer año, luego lifecycle a Archive  
+**Consecuencias:**
+- ✅ Acceso rápido a imágenes recientes (Cool tier: recuperación en minutos)
+- ✅ Cumple con restricciones técnicas de Azure
+- ❌ Coste ligeramente mayor primer año ($0.01/GB vs $0.00099/GB)
+- ❌ Requiere esperar 365 días para máximo ahorro
 
-[Repetir estructura]
+**Alternativa evaluada:** Upload a Cool y lifecycle inmediato a Archive (30 días) → Rechazado porque imágenes año 1 necesitan acceso ocasional para troubleshooting.
+
+### ADR-003: Windows Server en lugar de Linux para VM Gateway
+
+**Fecha:** 2025-01-22  
+**Estado:** Accepted  
+**Contexto:** Necesitamos una VM en red IT para actuar como gateway de upload a Azure  
+**Decisión:** Windows Server 2022 en lugar de Linux (Ubuntu)  
+**Consecuencias:**
+- ✅ Estándar corporativo IT (Windows-first organization)
+- ✅ Integración nativa con Active Directory
+- ✅ PowerShell nativo para scripting Azure
+- ✅ SMB share nativo para recibir archivos desde OT
+- ❌ Licencia Windows ($50/mes incluido en coste VM)
+- ❌ Mayor huella de memoria (16 GB vs 8 GB en Linux)
+
+**Alternativa evaluada:** Linux con Samba → Rechazado por falta de expertise en equipo IT Operations.
+
+### ADR-004: AzCopy en lugar de Azure Storage Explorer o custom script
+
+**Fecha:** 2025-02-01  
+**Estado:** Accepted  
+**Contexto:** Necesitamos transferir cientos de archivos diarios a Azure Blob Storage  
+**Decisión:** Usar AzCopy (CLI tool de Microsoft) en lugar de GUI o script PowerShell custom  
+**Consecuencias:**
+- ✅ Optimizado para Azure (multi-threaded, resume on failure)
+- ✅ MD5 hash verification automática
+- ✅ Logging detallado (éxito/fallo por archivo)
+- ✅ Mantenido por Microsoft (updates automáticas)
+- ❌ Requiere aprendizaje CLI (curva de aprendizaje menor)
+
+**Alternativa evaluada:** Script PowerShell custom con `Set-AzStorageBlobContent` → Rechazado porque AzCopy es 5-10x más rápido en transfers masivos.
 
 ---
 
@@ -389,44 +588,49 @@ Internet
 
 ### 10.1 Enlaces Importantes
 
-- **Repositorio código:** https://github.com/company/service-name
-- **CI/CD Pipeline:** https://jenkins.company.com/job/service-name
-- **Dashboards:** https://grafana.company.com/d/service-name
-- **Runbooks:** https://wiki.company.com/runbooks/service-name
-- **API Docs:** https://api.company.com/docs/service-name
-- **PagerDuty Service:** https://company.pagerduty.com/services/ABC123
+- **Repositorio código:** https://dev.azure.com/company/industrial-backup/_git/scripts
+- **Azure DevOps Pipeline:** https://dev.azure.com/company/industrial-backup/_build
+- **Dashboards:** https://portal.azure.com/#blade/Microsoft_Azure_Monitoring/AzureMonitoringBrowseBlade (filtro: tag=industrial-backup)
+- **Runbooks:** [02-deployment-runbook.md](./02-deployment-runbook.md)
+- **Azure Storage Account:** `industrialbackup{region}` (ej: `industrialbackupweu` para West Europe)
+- **PagerDuty Service:** https://company.pagerduty.com/services/INDBACK01
 
 ### 10.2 Related Documentation
 
 - [Instalación y Configuración](./02-deployment-runbook.md)
 - [RACI y Ownership](./03-service-ownership.md)
 - [Monitorización](./04-observability.md)
-- [Incident Runbooks](./06-incident-management.md)
+- [Service Catalog](./05-service-catalog.md)
+
+### 10.3 External References
+
+- **Azure Blob Storage Lifecycle Management:** https://learn.microsoft.com/en-us/azure/storage/blobs/lifecycle-management-overview
+- **AzCopy Documentation:** https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10
+- **Purdue Model (ISA-95):** https://www.isa.org/standards-and-publications/isa-standards/isa-standards-committees/isa95
+- **Azure Storage Pricing:** https://azure.microsoft.com/en-us/pricing/details/storage/blobs/
 
 ---
 
 ## 11. Change History
 
 | Version | Fecha | Autor | Cambios |
-| --- | --- | --- | --- |
-| 1.0 | 2024-03-15 | Juan Pérez | Versión inicial |
-| 1.1 | 2024-04-01 | María García | Añadido ADR-002 |
+|---------|-------|-------|---------|
+| 1.0 | 2025-02-19 | Arquitectura IT | Versión inicial — 15 plantas piloto Europa/América |
 
 ---
 
 ## 12. Approval
 
 | Rol | Nombre | Firma | Fecha |
-| --- | --- | --- | --- |
-| Arquitecto |     |     |     |
-| Service Owner |     |     |     |
-| Security Lead |     |     |     |
-| SRE Lead |     |     |     |
+|-----|--------|-------|-------|
+| Arquitecto | [Cloud Architect] | ✅ | 2025-02-19 |
+| Service Owner | [Architecture Lead] | ✅ | 2025-02-19 |
+| Security Lead | [Security Team Lead] | ✅ | 2025-02-19 |
+| SRE Lead | [Operations Manager] | ✅ | 2025-02-19 |
 
 ---
 
 **Notas:**
-
-- Este documento debe revisarse al menos cada 6 meses
-- Cambios arquitectónicos significativos requieren nueva versión
-- Mantener sincronizado con el código (IaC) en todo momento
+- Este documento debe revisarse **cada 6 meses** o cuando se añadan >10 plantas nuevas
+- Cambios arquitectónicos significativos (ej: cambio de tier Cool a Hot) requieren nueva versión
+- Mantener sincronizado con el código (scripts PowerShell) en Azure DevOps
