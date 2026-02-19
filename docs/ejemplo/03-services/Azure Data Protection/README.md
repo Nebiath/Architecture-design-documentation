@@ -9,7 +9,7 @@
 The main objective is to determine the minimum time for the data to be transferred and archived and test that both the copy of information into Azure and the recovery are performed successfully.
 
 ## 🏗️ Architecture
-![Architecture Diagram](diagrams/c4-context.png)
+![Architecture Diagram](docs/ejemplo/03-services/Azure%20Data%20Protection/diagrams/c4-context.png.png)
 
 ## 📊 SLOs
 | Metric | Target | Error Budget |
