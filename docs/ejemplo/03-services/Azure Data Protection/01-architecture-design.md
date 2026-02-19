@@ -115,6 +115,68 @@ Sistema automatizado para backup de imágenes industriales desde redes OT hacia 
                               └─────────────────────────┘
 ```
 
+```mermaid
+graph TB
+    subgraph PLANT["🏭 Planta Industrial (On-Premise)"]
+        subgraph OT_NET["Red OT (Purdue Level 3-2)<br/>10.x.x.x/16"]
+            OT["Equipos OT<br/>• Cámaras industriales<br/>• Sensores visuales<br/>• PLCs con captura imagen<br/>Generan: 100-500 GB/mes"]
+        end
+        
+        FW["🔥 Checkpoint Firewall<br/>Control OT ↔ IT<br/>Puerto: SMB 445<br/>Whitelist IPs"]
+        
+        subgraph IT_NET["Red IT (Purdue Level 4)<br/>192.168.x.x/24"]
+            GATEWAY["🖥️ VM Gateway<br/>Windows Server 2022<br/>PowerShell + AzCopy<br/>Backup automation"]
+        end
+    end
+    
+    INTERNET["🌐 Internet<br/>(Azure ExpressRoute<br/>o VPN Site-to-Site)"]
+    
+    subgraph AZURE["☁️ Azure Cloud"]
+        subgraph STORAGE["Azure Blob Storage"]
+            BLOB["📦 Blob Containers<br/>Por planta:<br/>plant-{code}-images"]
+        end
+        
+        subgraph LIFECYCLE["Lifecycle Management"]
+            COOL["❄️ Cool Tier<br/>$0.01/GB/mes<br/>0-365 días<br/>Acceso rápido"]
+            ARCHIVE["🗄️ Archive Tier<br/>$0.00099/GB/mes<br/>365+ días (30 años)<br/>Acceso lento"]
+        end
+        
+        MONITORING["📊 Azure Monitor<br/>Logs + Alertas<br/>Dashboards"]
+    end
+    
+    USERS["👥 Stakeholders<br/>• Plant Managers (Negocio)<br/>• IT Operations<br/>• Compliance/Audit"]
+    
+    OT -->|"Genera imágenes"| FW
+    FW -->|"SMB 445<br/>IP whitelisted"| GATEWAY
+    GATEWAY -->|"HTTPS 443<br/>TLS 1.3<br/>Managed Identity"| INTERNET
+    INTERNET --> BLOB
+    
+    BLOB --> COOL
+    COOL -->|"Lifecycle policy<br/>After 365 days"| ARCHIVE
+    
+    BLOB --> MONITORING
+    GATEWAY --> MONITORING
+    
+    USERS -.->|"View dashboards<br/>Request data"| MONITORING
+    USERS -.->|"Retrieve images<br/>(via ticket)"| ARCHIVE
+    
+    classDef otStyle fill:#ffd43b,stroke:#f08c00,stroke-width:3px,color:#000
+    classDef fwStyle fill:#e63946,stroke:#9d0208,stroke-width:3px,color:#fff
+    classDef itStyle fill:#4ecdc4,stroke:#087f5b,stroke-width:3px,color:#fff
+    classDef azureStyle fill:#0078d4,stroke:#004578,stroke-width:3px,color:#fff
+    classDef tierStyle fill:#74c0fc,stroke:#1c7ed6,stroke-width:2px,color:#000
+    classDef monitorStyle fill:#a9e34b,stroke:#5c940d,stroke-width:2px,color:#000
+    classDef userStyle fill:#f8f9fa,stroke:#868e96,stroke-width:2px,color:#000
+    
+    class OT otStyle
+    class FW fwStyle
+    class GATEWAY itStyle
+    class BLOB azureStyle
+    class COOL,ARCHIVE tierStyle
+    class MONITORING monitorStyle
+    class USERS userStyle
+```
+
 **Contexto:**
 El servicio actúa como puente seguro entre la red OT (Operational Technology) de plantas industriales y Azure Cloud, respetando el modelo Purdue de segmentación. Las imágenes generadas por equipos industriales en OT se copian a la VM gateway en IT, que luego las sube a Azure para almacenamiento de largo plazo.
 
