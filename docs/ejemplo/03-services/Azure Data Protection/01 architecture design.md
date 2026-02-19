@@ -227,6 +227,9 @@ El servicio actúa como puente seguro entre la red OT (Operational Technology) d
                     └────────────────────────┘
 ```
 
+
+```mermaid
+
 graph TB
     subgraph VM["🖥️ VM Gateway Windows Server 2022<br/>ITGW-FACTORY-{CODE}<br/>192.168.10.50 | 4 vCPU | 16 GB RAM | 1 TB SSD"]
         
