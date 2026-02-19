@@ -226,6 +226,103 @@ El servicio actúa como puente seguro entre la red OT (Operational Technology) d
                     └────────────────────────┘
 ```
 
+graph TB
+    subgraph VM["🖥️ VM Gateway Windows Server 2022<br/>ITGW-FACTORY-{CODE}<br/>192.168.10.50 | 4 vCPU | 16 GB RAM | 1 TB SSD"]
+        
+        subgraph FS["📁 File System (D:\ImageBackup\)"]
+            INC["📥 Incoming/<br/>SMB Share from OT<br/>\\gateway\ImageBackup<br/>Files arrive here"]
+            STG["⏳ Staging/<br/>Temporary processing<br/>Awaiting upload"]
+            PROC["✅ Processed/<br/>Post-upload<br/>Retained 7 days<br/>Then deleted"]
+        end
+        
+        subgraph SCRIPTS["⚙️ PowerShell Automation<br/>(Task Scheduler)"]
+            MON["🔍 Monitor-IncomingImages.ps1<br/>Frequency: Every 5 min<br/>Action: Move Incoming → Staging<br/>Validates: Image extensions"]
+            
+            UPL["⬆️ Upload-ToAzure.ps1<br/>Frequency: Every 10 min<br/>Tool: AzCopy v10<br/>Features: Batch upload,<br/>MD5 verify, Retry on fail"]
+            
+            CLN["🧹 Cleanup-LocalFiles.ps1<br/>Frequency: Daily 03:00<br/>Action: Delete Processed/<br/>Retention: > 7 days old"]
+        end
+        
+        subgraph SDK["Azure SDKs & Tools"]
+            AZCOPY["AzCopy v10<br/>Multi-threaded<br/>Resume on failure"]
+            AZ_PS["Az.Storage Module<br/>PowerShell 7.4"]
+            AZ_MON["Az.Monitor Module<br/>Custom metrics"]
+        end
+        
+        subgraph AUTH["🔐 Authentication"]
+            MI["Managed Identity<br/>System-assigned<br/>No passwords stored<br/>Auto token refresh"]
+        end
+        
+        subgraph LOGS["📝 Local Logs"]
+            LOG_FILES["D:\ImageBackup\Logs\<br/>Monitor-*.log<br/>Upload-*.log<br/>Cleanup-*.log<br/>Retention: 30 days"]
+        end
+    end
+    
+    OT_SHARE["OT Network Share<br/>\\ot-server\images"]
+    
+    subgraph AZURE["☁️ Azure Blob Storage<br/>industrialbackup{region}"]
+        CONTAINER["📦 Container<br/>plant-{code}-images<br/>Private access only"]
+        
+        BLOBS["Blobs (images)<br/>Format: YYYY/MM/DD/<br/>filename.jpg"]
+        
+        POLICY["Lifecycle Policy<br/>Rule 1: Upload → Cool (0d)<br/>Rule 2: Cool → Archive (365d)"]
+    end
+    
+    subgraph MONITOR["📊 Azure Monitor"]
+        LA["Log Analytics<br/>Workspace:<br/>law-industrialbackup-{region}"]
+        ALERTS["Alert Rules<br/>• No uploads 24h (P1)<br/>• High error rate (P2)<br/>• Disk full (P2)"]
+        DASH["Dashboards<br/>Workbooks:<br/>Upload success rate,<br/>Files per plant"]
+    end
+    
+    OT_SHARE -->|"Copy via FW<br/>SMB 445"| INC
+    
+    INC --> MON
+    MON --> STG
+    
+    STG --> UPL
+    UPL -->|"Uses"| AZCOPY
+    UPL -->|"Uses"| AZ_PS
+    
+    UPL -->|"HTTPS 443<br/>TLS 1.3"| CONTAINER
+    
+    MI -.->|"OAuth token<br/>RBAC: Storage<br/>Blob Data<br/>Contributor"| CONTAINER
+    
+    UPL --> PROC
+    PROC --> CLN
+    
+    CONTAINER --> BLOBS
+    BLOBS --> POLICY
+    
+    MON --> LOG_FILES
+    UPL --> LOG_FILES
+    CLN --> LOG_FILES
+    
+    LOG_FILES -->|"Shipped via<br/>Azure Monitor<br/>Agent"| LA
+    
+    UPL -->|"Custom metrics"| AZ_MON
+    AZ_MON --> LA
+    
+    LA --> ALERTS
+    LA --> DASH
+    
+    classDef fsStyle fill:#ffd43b,stroke:#f08c00,stroke-width:2px,color:#000
+    classDef scriptStyle fill:#845ef7,stroke:#5f3dc4,stroke-width:2px,color:#fff
+    classDef toolStyle fill:#4ecdc4,stroke:#087f5b,stroke-width:2px,color:#fff
+    classDef authStyle fill:#e63946,stroke:#9d0208,stroke-width:2px,color:#fff
+    classDef azureStyle fill:#0078d4,stroke:#004578,stroke-width:2px,color:#fff
+    classDef monitorStyle fill:#a9e34b,stroke:#5c940d,stroke-width:2px,color:#000
+    classDef logStyle fill:#f8f9fa,stroke:#868e96,stroke-width:2px,color:#000
+    
+    class INC,STG,PROC fsStyle
+    class MON,UPL,CLN scriptStyle
+    class AZCOPY,AZ_PS,AZ_MON toolStyle
+    class MI authStyle
+    class CONTAINER,BLOBS,POLICY azureStyle
+    class LA,ALERTS,DASH monitorStyle
+    class LOG_FILES logStyle
+
+```
+
 **Componentes principales:**
 1. **File System (D:\):** Directorio estructurado para gestionar flujo de imágenes
    - `D:\ImageBackup\Incoming\` — Destino de copias desde OT (SMB share)
