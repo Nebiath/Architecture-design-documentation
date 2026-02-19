@@ -115,6 +115,7 @@ Sistema automatizado para backup de imágenes industriales desde redes OT hacia 
                               └─────────────────────────┘
 ```
 
+
 ```mermaid
 graph TB
     subgraph PLANT["🏭 Planta Industrial (On-Premise)"]
@@ -176,6 +177,7 @@ graph TB
     class MONITORING monitorStyle
     class USERS userStyle
 ```
+
 **Contexto:**
 El servicio actúa como puente seguro entre la red OT (Operational Technology) de plantas industriales y Azure Cloud, respetando el modelo Purdue de segmentación. Las imágenes generadas por equipos industriales en OT se copian a la VM gateway en IT, que luego las sube a Azure para almacenamiento de largo plazo.
 
