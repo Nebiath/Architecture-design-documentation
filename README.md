@@ -31,7 +31,7 @@ architecture/
 ├── 13 technical implementation guide.md       # Plan de Implementación Técnica para VM on premises
 ├── 14 utility scripts.md                      # Scripts de automatización para el repo
 ├── 15 azure devops implementation.md          # Plan de Implementación Técnica con Azure DevOps
-└── Plan estandarizacion documentacion sre.md  # Estandarización de Documentación de Arquitectura IT/SRE (Posible duplicado)
+└── Plan estandarizacion documentacion sre.md  # Plan de Estandarización de Documentación de Arquitectura IT/SRE (Posible duplicado Eliminación TBD)
 docs/
 ├── 01 architecture design template.md         # Documento de diseño de Arquitectura
 ├── 02 deployment runbook template.md          # Documento de Deployment & Runbooks
@@ -41,7 +41,7 @@ docs/
 ├── 06 incident management template.md         # Documento de Incident Management y Post-Mortem Template
 ├── 07 change management template.md           # Documento de Gestión del cambio
 ├── 08 api documentation template.md           # Documento de Documentación de las API
-└── 09 repository structure guide.md           # Documento de Estructura de Repositorio para Documentación de Arquitectura IT
+└── 09 09 repository structure guide.md        # Documento de Estructura de Repositorio para Documentación de Arquitectura IT
 
 
 ```
