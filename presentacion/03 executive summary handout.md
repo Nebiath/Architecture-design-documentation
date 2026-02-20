@@ -37,8 +37,6 @@
 | 4 | **Observability & Monitoring** | SLIs, Golden Signals, dashboards, alerting |
 | 5 | **Service Catalog Entry** | Registro centralizado, metadata, links |
 | 6 | **Incident Management** | Severity matrix, runbooks, post-mortems |
-| 7 | **Change Management** | Tipos de cambios, RFCs, aprobaciones |
-| 8 | **API Documentation** | OpenAPI/Swagger, auth, rate limiting |
 
 ---
 
