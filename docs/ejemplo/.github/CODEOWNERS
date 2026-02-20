@@ -1,0 +1,36 @@
+# .github/CODEOWNERS
+
+# Global owners (pueden aprobar cualquier cambio)
+* @architecture-team @cto
+
+# Templates - requieren aprobación especial
+/00-templates/ @architecture-team @tech-writer
+
+# Global standards
+/01-global/ @architecture-team @security-team @compliance-team
+
+# Departamentos - cada uno tiene ownership
+/02-infrastructure/hardware/ @infrastructure-team @hardware-lead
+/02-infrastructure/virtualization/ @virtualization-team @vmware-admin
+/02-infrastructure/wan/ @network-team @wan-lead
+/02-infrastructure/lan/ @network-team @lan-lead
+/02-infrastructure/windows/ @windows-team @ad-admin
+/02-infrastructure/linux/ @linux-team @linux-lead
+/02-infrastructure/devops/ @devops-team @k8s-admin
+/02-infrastructure/cloud-azure/ @cloud-team @azure-architect
+
+# Services - ownership por servicio
+/03-services/authentication-service/ @auth-team @auth-owner
+/03-services/payment-gateway/ @payments-team @payments-owner
+
+# Cross-cutting - múltiples owners
+/04-cross-cutting/security/ @security-team
+/04-cross-cutting/monitoring/ @sre-team @devops-team
+/04-cross-cutting/compliance/ @compliance-team @legal-team
+
+# ADRs - requieren arquitectos
+/06-decisions/ @architecture-team @principal-engineers
+
+# Integration docs - múltiples equipos
+/07-integration/ @architecture-team
+/07-integration/cloud-to-onprem/ @cloud-team @network-team
