@@ -1,4 +1,5 @@
 # Plan de Implementación Técnica - Infraestructura de Documentación
+
 ## Ubuntu Server 24.04 LTS + GitLab + Notion + Teams
 
 > **Objetivo:** Levantar infraestructura completa para gestión de documentación  
@@ -57,18 +58,21 @@
 ## ⚙️ Requisitos Previos
 
 ### Hardware (VM)
+
 - **CPU:** 4 cores (mínimo 2)
 - **RAM:** 8 GB (mínimo 4 GB)
 - **Disco:** 50 GB (SSD recomendado)
 - **Red:** IP estática o DHCP reservation
 
 ### Software
+
 - Ubuntu Server 24.04 LTS (instalación limpia)
 - Acceso root o sudo
 - Dominio/subdomain (ej: `gitlab.company.com`)
 - Certificado SSL (Let's Encrypt recomendado)
 
 ### Accesos
+
 - [ ] Cuenta Notion (workspace admin)
 - [ ] Cuenta Microsoft 365 (Teams admin para webhooks)
 - [ ] DNS configurado apuntando a tu VM
@@ -290,6 +294,7 @@ gitlab-runner --version
 ### 3.3 Registrar Runner
 
 **Obtener registration token:**
+
 1. En proyecto → Settings → CI/CD → Runners
 2. Copy registration token
 
@@ -470,7 +475,7 @@ lint:markdown:
         -not -path "*/vendor/*" \
         -not -path "*/.git/*" \
         > /tmp/md_files.txt
-      
+
       # Lint markdown files
       if [ -s /tmp/md_files.txt ]; then
         cat /tmp/md_files.txt | xargs markdownlint \
@@ -497,14 +502,14 @@ lint:links:
         -not -path "*/node_modules/*" \
         -not -path "*/.git/*" \
         > /tmp/md_files.txt
-      
+
       # Check links in each file
       EXIT_CODE=0
       while IFS= read -r file; do
         echo "Checking links in: $file"
         markdown-link-check "$file" -c .markdown-link-check.json || EXIT_CODE=1
       done < /tmp/md_files.txt
-      
+
       exit $EXIT_CODE
     - echo "✅ Link checking passed"
   allow_failure: true  # Allows false positives
@@ -554,7 +559,7 @@ test:completeness:
         if [ -d "$service_dir" ]; then
           service=$(basename "$service_dir")
           echo "Checking service: $service"
-          
+
           # Required files
           FILES=(
             "01-architecture-design.md"
@@ -562,7 +567,7 @@ test:completeness:
             "03-service-ownership.md"
             "04-observability.md"
           )
-          
+
           for file in "${FILES[@]}"; do
             if [ ! -f "$service_dir/$file" ]; then
               echo "⚠️  Missing $file in $service"
@@ -668,14 +673,17 @@ git push origin main
 ### 3.7 Verificar Pipeline
 
 1. **Ver pipeline en GitLab:**
+   
    - Proyecto → CI/CD → Pipelines
    - Debería aparecer pipeline ejecutándose
 
 2. **Ver logs:**
+   
    - Click en pipeline → Ver cada job
    - Verificar que todos pasan
 
 3. **Solucionar errores comunes:**
+   
    - Si falla por linters no instalados → Reinstalar en runner
    - Si falla por permisos → Verificar gitlab-runner user
 
@@ -899,6 +907,7 @@ chmod +x .git/hooks/pre-commit
 1. **Ir a Settings → Repository → Protected Branches**
 
 2. **Proteger `main` branch:**
+   
    - Branch: `main`
    - Allowed to merge: Maintainers
    - Allowed to push: No one
@@ -907,6 +916,7 @@ chmod +x .git/hooks/pre-commit
    - Click "Protect"
 
 3. **Proteger `production` branch (si existe):**
+   
    - Misma configuración que main
 
 ### 5.2 Crear CODEOWNERS File
@@ -1010,14 +1020,17 @@ git push
 **En GitLab Web UI:**
 
 1. **Crear Grupos:**
+   
    - Admin Area → Groups → New group
    - Crear grupos: `architecture-team`, `network-team`, `devops-team`, etc.
 
 2. **Añadir Usuarios a Grupos:**
+   
    - Grupo → Members → Invite members
    - Asignar roles: Maintainer, Developer, Reporter
 
 3. **Verificar estructura:**
+   
    ```
    documentation/
    ├── architecture-team (Group)
@@ -1036,6 +1049,7 @@ git push
 **En proyecto → Settings → Merge requests:**
 
 1. **Merge request approvals:**
+   
    - Approvals required before merging: 1
    - ✅ Prevent approval by author
    - ✅ Prevent approvals by users who add commits
@@ -1043,11 +1057,13 @@ git push
    - ✅ Require code owner approval
 
 2. **Merge checks:**
+   
    - ✅ Pipelines must succeed
    - ✅ All threads must be resolved
    - ❌ Status checks must succeed (optional)
 
 3. **Merge suggestions:**
+   
    - ✅ Enable "Delete source branch" option by default
    - Merge method: Merge commit (recommended)
 
@@ -1092,11 +1108,13 @@ git push origin docs/update-kubernetes-architecture
 3. **Buscar "Incoming Webhook" → Add**
 
 4. **Configurar webhook:**
+   
    - Name: GitLab Documentation
    - Upload image: (opcional, logo de GitLab)
    - Click "Create"
 
 5. **Copiar webhook URL:**
+   
    ```
    https://company.webhook.office.com/webhookb2/xxx-xxx-xxx/IncomingWebhook/yyy-yyy-yyy
    ```
@@ -1152,7 +1170,7 @@ send_teams_message() {
   local summary=$3
   shift 3
   local facts=("$@")
-  
+
   # Construir JSON de facts
   local facts_json=""
   for fact in "${facts[@]}"; do
@@ -1160,7 +1178,7 @@ send_teams_message() {
     facts_json+="{ \"name\": \"$name\", \"value\": \"$value\" },"
   done
   facts_json=${facts_json%,}  # Remove trailing comma
-  
+
   # Payload JSON
   local payload=$(cat <<JSON
 {
@@ -1183,7 +1201,7 @@ send_teams_message() {
 }
 JSON
 )
-  
+
   # Enviar a Teams
   curl -H "Content-Type: application/json" \
     -d "$payload" \
@@ -1203,7 +1221,7 @@ case "${1:-custom}" in
       "Author=$GITLAB_USER_NAME" \
       "Duration=$CI_PIPELINE_DURATION seconds"
     ;;
-    
+
   failure)
     send_teams_message \
       "dc3545" \
@@ -1215,7 +1233,7 @@ case "${1:-custom}" in
       "Author=$GITLAB_USER_NAME" \
       "Failed Job=$CI_JOB_NAME"
     ;;
-    
+
   merge)
     send_teams_message \
       "007bff" \
@@ -1226,7 +1244,7 @@ case "${1:-custom}" in
       "Author=$GITLAB_USER_NAME" \
       "Title=$CI_MERGE_REQUEST_TITLE"
     ;;
-    
+
   custom)
     # Custom message (pass as arguments)
     send_teams_message \
@@ -1236,7 +1254,7 @@ case "${1:-custom}" in
       "Project=$CI_PROJECT_NAME" \
       "Author=$GITLAB_USER_NAME"
     ;;
-    
+
   *)
     echo "Usage: $0 [success|failure|merge|custom]"
     exit 1
@@ -1298,7 +1316,7 @@ case "$event_type" in
       }]
     }" "$TEAMS_URL"
     ;;
-    
+
   "merge_request")
     action=$(echo "$payload" | jq -r '.object_attributes.action')
     mr_title=$(echo "$payload" | jq -r '.object_attributes.title')
@@ -1327,6 +1345,7 @@ sudo chmod +x /usr/local/bin/gitlab-teams-webhook.sh
 ```
 
 **Configurar en GitLab webhook:**
+
 - URL: `http://localhost/gitlab-teams-webhook` (requiere nginx proxy)
 - Trigger: Push, MR, Pipeline
 
@@ -1340,6 +1359,7 @@ sudo chmod +x /usr/local/bin/gitlab-teams-webhook.sh
 ```
 
 **Verificar en Teams:**
+
 - Debería aparecer card con información del pipeline
 
 ---
@@ -1387,6 +1407,7 @@ Architecture Documentation (Workspace)
 **Opción 1: Manual Sync (Simple)**
 
 Proceso:
+
 1. Editar en GitLab (Git workflow)
 2. Aprobar MR
 3. Copiar contenido a Notion
@@ -1410,10 +1431,10 @@ NOTION_DATABASE_ID="${NOTION_DATABASE_ID}"
 sync_file_to_notion() {
   local file=$1
   local notion_page_id=$2
-  
+
   # Convert markdown to Notion format
   # (Requiere herramienta de conversión como md-to-notion)
-  
+
   echo "Syncing $file to Notion page $notion_page_id"
   # Implementar aquí
 }
@@ -1426,6 +1447,7 @@ EOF
 ```
 
 **Nota:** Sincronización automática GitLab → Notion es compleja. Recomiendo:
+
 - Git como source of truth
 - Notion como read-only view
 - Sync manual o semi-automático
@@ -1579,12 +1601,14 @@ sudo systemctl enable grafana-server
 ```
 
 **Añadir GitLab como datasource:**
+
 1. Grafana → Configuration → Data Sources
 2. Add data source → Prometheus
 3. URL: `http://localhost:9090`
 4. Save & Test
 
 **Importar dashboard de GitLab:**
+
 1. Dashboards → Import
 2. ID: 9524 (GitLab Omnibus)
 3. Load → Import
@@ -1610,7 +1634,7 @@ groups:
           severity: critical
         annotations:
           summary: "GitLab is down"
-          
+
       - alert: HighCPU
         expr: node_cpu_seconds_total{mode="idle"} < 20
         for: 5m
@@ -1618,7 +1642,7 @@ groups:
           severity: warning
         annotations:
           summary: "High CPU usage on GitLab server"
-          
+
       - alert: DiskSpaceLow
         expr: node_filesystem_avail_bytes / node_filesystem_size_bytes < 0.1
         for: 5m
@@ -1879,20 +1903,21 @@ openssl s_client -connect gitlab.company.com:443
 
 Después de implementación, trackear:
 
-| Métrica | Meta | Cómo medir |
-|---------|------|------------|
-| Uptime GitLab | >99% | Prometheus uptime |
-| Pipeline success rate | >95% | GitLab → CI/CD → Analytics |
-| Avg pipeline duration | <5 min | Pipeline history |
-| MR approval time | <24h | MR analytics |
-| Backup success rate | 100% | Check cron logs |
-| Teams notifications sent | 100% | Check Teams channel |
+| Métrica                  | Meta   | Cómo medir                 |
+| ------------------------ | ------ | -------------------------- |
+| Uptime GitLab            | >99%   | Prometheus uptime          |
+| Pipeline success rate    | >95%   | GitLab → CI/CD → Analytics |
+| Avg pipeline duration    | <5 min | Pipeline history           |
+| MR approval time         | <24h   | MR analytics               |
+| Backup success rate      | 100%   | Check cron logs            |
+| Teams notifications sent | 100%   | Check Teams channel        |
 
 ---
 
 ## 🚀 Próximos Pasos
 
 1. **Poblar repositorio con templates**
+   
    ```bash
    # Copiar templates creados anteriormente
    mkdir -p 00-templates
@@ -1903,17 +1928,20 @@ Después de implementación, trackear:
    ```
 
 2. **Documentar primer servicio piloto**
+   
    - Crear carpeta en 03-services/
    - Usar templates
    - Crear MR
    - Probar workflow completo
 
 3. **Training para usuarios**
+   
    - Workshop de Git/GitLab básico
    - Demo de crear MR
    - Explicar proceso de aprobación
 
 4. **Iterar basado en feedback**
+   
    - Ajustar CODEOWNERS
    - Refinar pipeline
    - Mejorar linters
@@ -1923,16 +1951,19 @@ Después de implementación, trackear:
 ## 📞 Soporte y Recursos
 
 **Documentación Oficial:**
+
 - GitLab: https://docs.gitlab.com/
 - GitLab CI: https://docs.gitlab.com/ee/ci/
 - Notion: https://notion.so/help
 - Markdownlint: https://github.com/DavidAnson/markdownlint
 
 **Comunidad:**
+
 - GitLab Forum: https://forum.gitlab.com/
 - Stack Overflow: Tag [gitlab]
 
 **Contacto Interno:**
+
 - Infra team: infra@company.com
 - DevOps team: devops@company.com
 - Doc team: docs@company.com
