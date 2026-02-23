@@ -3,8 +3,9 @@
 > **Version:** 1.0  
 > **Fecha:** 2025-02-19  
 > **Estado:** Approved  
-> **Autor:** Public Cloud Team + IT Operations  
-> **Service Owner:** Arquitectura IT  
+> **Autor:** Cloud Architecture  
+> **Service Owner:** Cloud Architecture
+> 
 > **Última Revisión:** 2025-02-19
 
 ---
@@ -14,6 +15,7 @@
 **Objetivo:** Detectar proactivamente fallos en el flujo de backup OT → Azure antes de que impacten al negocio.
 
 **Principios:**
+
 - **Proactive, not reactive:** Alertar ANTES de que se pierdan 24h de imágenes
 - **End-to-end coverage:** Monitorizar todos los puntos del flujo (OT → FW → IT → Azure)
 - **Actionable alerts:** Cada alerta debe tener un runbook asociado
@@ -23,14 +25,14 @@
 
 ## 2. Monitoring Stack
 
-| Layer | Tool | Metrics Collected | Logs Collected |
-|-------|------|-------------------|----------------|
-| **VM Gateway (OS)** | Azure Monitor Agent | CPU, RAM, Disk, Network | Windows Event Logs, PowerShell logs |
-| **Application (Scripts)** | Custom PowerShell logs | Files detected, uploaded, failed | D:\ImageBackup\Logs\*.log |
-| **Azure Blob Storage** | Azure Monitor | Blob count, storage size, transactions | Access logs, lifecycle events |
-| **Network** | Azure Network Watcher | Bandwidth, latency | Flow logs (NSG) |
-| **Alerting** | Azure Monitor Alerts | — | — |
-| **Dashboards** | Azure Workbooks | — | — |
+| Layer                     | Tool                   | Metrics Collected                      | Logs Collected                      |
+| ------------------------- | ---------------------- | -------------------------------------- | ----------------------------------- |
+| **VM Gateway (OS)**       | Azure Monitor Agent    | CPU, RAM, Disk, Network                | Windows Event Logs, PowerShell logs |
+| **Application (Scripts)** | Custom PowerShell logs | Files detected, uploaded, failed       | D:\ImageBackup\Logs\*.log           |
+| **Azure Blob Storage**    | Azure Monitor          | Blob count, storage size, transactions | Access logs, lifecycle events       |
+| **Network**               | Azure Network Watcher  | Bandwidth, latency                     | Flow logs (NSG)                     |
+| **Alerting**              | Azure Monitor Alerts   | —                                      | —                                   |
+| **Dashboards**            | Azure Workbooks        | —                                      | —                                   |
 
 ---
 
@@ -39,73 +41,89 @@
 Monitorizamos los **4 Golden Signals** de Google SRE:
 
 ### 3.1 Latency
+
 **Definition:** Tiempo desde que una imagen llega a `Incoming/` hasta confirmación en Azure
 
 **Metric:**
+
 ```
 upload_latency_seconds = timestamp_azure_confirmed - timestamp_file_arrived_incoming
 ```
 
 **Target:**
+
 - p50 < 15 minutes
 - p95 < 30 minutes
 - p99 < 60 minutes
 
 **Alert:**
+
 - Warning: p95 > 45 min sustained for 2 hours
 - Critical: p95 > 90 min
 
 **Data Source:** Custom metric enviada desde `Upload-ToAzure.ps1`
 
 ### 3.2 Traffic
+
 **Definition:** Volumen de archivos procesados por día
 
 **Metric:**
+
 ```
 files_uploaded_per_day = count(successful_uploads) in last 24h
 ```
 
 **Target:**
+
 - Promedio: 50-200 files/day (varía por planta)
 - Baseline establecido después de 30 días de operación
 
 **Alert:**
+
 - Warning: traffic < 50% of baseline for 24h (posible problema en OT)
 - Critical: traffic = 0 for 24h (servicio completamente caído)
 
 **Data Source:** Azure Blob Storage metrics (`BlobCount`)
 
 ### 3.3 Errors
+
 **Definition:** Tasa de fallos en uploads
 
 **Metric:**
+
 ```
 error_rate = failed_uploads / total_upload_attempts
 ```
 
 **Target:**
+
 - < 0.5% (995 de 1000 archivos suben exitosamente)
 
 **Alert:**
+
 - Warning: error_rate > 2% for 1 hour
 - Critical: error_rate > 10% for 30 min
 
 **Data Source:** Logs de `Upload-ToAzure.ps1` (parsing "ERROR" lines)
 
 ### 3.4 Saturation
+
 **Definition:** Utilización de recursos críticos
 
 **Metrics:**
+
 - `vm_disk_used_percent` = (used space / total space) * 100 on D:\
 - `vm_cpu_percent` = avg CPU over 10 min
 - `vm_memory_percent` = used memory / total memory
 
 **Targets:**
+
 - Disk < 80%
 - CPU < 70%
 - Memory < 85%
 
 **Alerts:**
+
 - Warning: disk > 80% for 2 hours
 - Critical: disk > 90%
 
@@ -118,6 +136,7 @@ error_rate = failed_uploads / total_upload_attempts
 ### 4.1 Infrastructure Metrics (Azure Monitor)
 
 **VM Gateway Metrics (built-in):**
+
 ```kql
 // CPU utilization
 Perf
@@ -201,12 +220,12 @@ AzureMetrics
 
 ### 5.1 Log Sources
 
-| Source | Log Path | Format | Retention | Shipped to |
-|--------|----------|--------|-----------|------------|
+| Source                 | Log Path                  | Format                           | Retention     | Shipped to    |
+| ---------------------- | ------------------------- | -------------------------------- | ------------- | ------------- |
 | **PowerShell Scripts** | D:\ImageBackup\Logs\*.log | Plain text (timestamp + message) | 30 días local | Log Analytics |
-| **Windows Event Log** | Application, System | Windows Event | 30 días local | Log Analytics |
-| **Azure Storage** | Diagnostic logs | JSON | 90 días | Log Analytics |
-| **Task Scheduler** | Task Scheduler logs | Windows Event | 30 días local | Log Analytics |
+| **Windows Event Log**  | Application, System       | Windows Event                    | 30 días local | Log Analytics |
+| **Azure Storage**      | Diagnostic logs           | JSON                             | 90 días       | Log Analytics |
+| **Task Scheduler**     | Task Scheduler logs       | Windows Event                    | 30 días local | Log Analytics |
 
 ### 5.2 Log Shipping Configuration
 
@@ -231,6 +250,7 @@ $workspaceKey = Get-AzOperationalInsightsWorkspaceSharedKey -ResourceGroupName "
 ### 5.3 Log Analysis Queries (KQL)
 
 **Query 1: Errores en últimas 24 horas**
+
 ```kql
 IndustrialBackup_CL
 | where TimeGenerated > ago(24h)
@@ -240,6 +260,7 @@ IndustrialBackup_CL
 ```
 
 **Query 2: Archivos subidos por hora (últimos 7 días)**
+
 ```kql
 IndustrialBackup_CL
 | where TimeGenerated > ago(7d)
@@ -250,6 +271,7 @@ IndustrialBackup_CL
 ```
 
 **Query 3: Upload failures por planta**
+
 ```kql
 IndustrialBackup_CL
 | where TimeGenerated > ago(7d)
@@ -269,6 +291,7 @@ IndustrialBackup_CL
 **Widgets:**
 
 1. **Upload Success Rate (Last 7d)** — Line chart
+   
    ```kql
    IndustrialBackup_CL
    | where TimeGenerated > ago(7d)
@@ -278,6 +301,7 @@ IndustrialBackup_CL
    ```
 
 2. **Files Uploaded per Plant (Today)** — Bar chart
+   
    ```kql
    IndustrialBackup_CL
    | where TimeGenerated > startofday(now())
@@ -287,6 +311,7 @@ IndustrialBackup_CL
    ```
 
 3. **VM Disk Usage** — Gauge
+   
    ```kql
    Perf
    | where TimeGenerated > ago(10m)
@@ -296,6 +321,7 @@ IndustrialBackup_CL
    ```
 
 4. **Error Log Count (Last 24h)** — Single stat
+   
    ```kql
    IndustrialBackup_CL
    | where TimeGenerated > ago(24h)
@@ -304,6 +330,7 @@ IndustrialBackup_CL
    ```
 
 5. **Azure Blob Storage Size (Trend)** — Area chart
+   
    ```kql
    AzureMetrics
    | where ResourceId contains "industrialbackupweu"
@@ -322,14 +349,14 @@ Clonar dashboard principal y filtrar por `Computer == "ITGW-FACTORY-EU01"` para 
 
 ### 7.1 Alert Rules
 
-| Alert Name | Condition | Severity | Frequency | Action Group |
-|------------|-----------|----------|-----------|--------------|
-| **No uploads in 24h** | BlobCount increment = 0 for 24h | Critical | Every 6h | Email + PagerDuty |
-| **High error rate** | Error rate > 5% for 1h | Warning | Every 15min | Email IT Ops |
-| **VM disk almost full** | Disk D:\ > 85% | Warning | Every 1h | Email IT Ops |
-| **VM disk critical** | Disk D:\ > 95% | Critical | Every 15min | Email + PagerDuty |
-| **VM down** | VM heartbeat missing for 10min | Critical | Every 5min | PagerDuty |
-| **Upload latency high** | p95 > 60min for 2h | Warning | Every 30min | Email Cloud Team |
+| Alert Name              | Condition                       | Severity | Frequency   | Action Group      |
+| ----------------------- | ------------------------------- | -------- | ----------- | ----------------- |
+| **No uploads in 24h**   | BlobCount increment = 0 for 24h | Critical | Every 6h    | Email + PagerDuty |
+| **High error rate**     | Error rate > 5% for 1h          | Warning  | Every 15min | Email IT Ops      |
+| **VM disk almost full** | Disk D:\ > 85%                  | Warning  | Every 1h    | Email IT Ops      |
+| **VM disk critical**    | Disk D:\ > 95%                  | Critical | Every 15min | Email + PagerDuty |
+| **VM down**             | VM heartbeat missing for 10min  | Critical | Every 5min  | PagerDuty         |
+| **Upload latency high** | p95 > 60min for 2h              | Warning  | Every 30min | Email Cloud Team  |
 
 ### 7.2 Alert Configuration (Example)
 
@@ -361,11 +388,13 @@ Add-AzMetricAlertRuleV2 `
 ### 7.3 Action Groups
 
 **AG-IndustrialBackup-Critical:**
+
 - Email: it-ops@company.com, cloud-team@company.com
 - PagerDuty: Integration key `xxx`
 - SMS: +XX XXX XXX XXX (on-call phone)
 
 **AG-IndustrialBackup-Warning:**
+
 - Email: it-ops@company.com
 - Slack: #industrial-backup channel webhook
 
@@ -447,6 +476,7 @@ Perf
 **Symptoms:** Alert "No uploads in 24h" fires
 
 **Investigation:**
+
 ```powershell
 # 1. Check if VM is running
 Get-AzVM -ResourceGroupName "RG-IndustrialBackup-WestEurope" -Name "ITGW-FACTORY-EU01" -Status
@@ -465,6 +495,7 @@ Test-NetConnection -ComputerName industrialbackupweu.blob.core.windows.net -Port
 ```
 
 **Resolution:**
+
 - Si VM stopped → Start VM
 - Si Task failed → Revisar logs y restart manualmente
 - Si no hay archivos en Incoming → Problema en OT, escalar a IT Local
@@ -475,6 +506,7 @@ Test-NetConnection -ComputerName industrialbackupweu.blob.core.windows.net -Port
 **Symptoms:** Upload error rate > 5%
 
 **Investigation:**
+
 ```kql
 IndustrialBackup_CL
 | where TimeGenerated > ago(1h)
@@ -485,6 +517,7 @@ IndustrialBackup_CL
 ```
 
 **Common errors:**
+
 - "AuthenticationFailed" → Managed Identity issue, recreate role assignment
 - "BlobAlreadyExists" → Duplicate filename, check Staging/ cleanup
 - "RequestTimeout" → Network congestion, retry automatically
@@ -545,13 +578,14 @@ Output enviado automáticamente a Service Owner el día 1 de cada mes.
 
 ## 13. Change History
 
-| Version | Fecha | Autor | Cambios |
-|---------|-------|-------|---------|
-| 1.0 | 2025-02-19 | Public Cloud + IT Ops | Versión inicial — Monitoring strategy |
+| Version | Fecha      | Autor                 | Cambios                               |
+| ------- | ---------- | --------------------- | ------------------------------------- |
+| 1.0     | 2025-02-19 | Public Cloud + IT Ops | Versión inicial — Monitoring strategy |
 
 ---
 
 **Notes:**
+
 - Dashboards deben ser accesibles a todos los stakeholders (incluido Negocio para transparency)
 - Alertas PagerDuty solo para severidad Critical, no Warning (evitar alert fatigue)
 - Logs PowerShell deben incluir SIEMPRE timestamp y nivel (INFO/WARN/ERROR)

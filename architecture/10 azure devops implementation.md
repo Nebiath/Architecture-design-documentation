@@ -1,4 +1,5 @@
 # Implementación con Azure DevOps - Guía Completa
+
 ## Alternativa a GitLab para Documentación IT
 
 > **Ventaja Principal:** Si ya usas Azure DevOps, esta es la mejor opción  
@@ -11,16 +12,16 @@
 
 ### Ventajas vs. GitLab
 
-| Aspecto | Azure DevOps | GitLab CE |
-|---------|-------------|-----------|
-| **Setup** | Ya está configurado ✅ | Requiere VM + instalación |
-| **SSO/AD** | Ya integrado ✅ | Requiere configuración |
-| **Usuarios** | Ya están ahí ✅ | Hay que crear todos |
-| **Teams Integration** | Nativa ✅ | Webhook manual |
-| **Hosting** | Microsoft cloud ✅ | Tu VM (mantenimiento) |
-| **Backup** | Automático ✅ | Tienes que configurar |
-| **Costo infraestructura** | €0 ✅ | VM + electricidad |
-| **Curva aprendizaje** | Baja (ya lo usan) ✅ | Alta (tool nuevo) |
+| Aspecto                   | Azure DevOps          | GitLab CE                 |
+| ------------------------- | --------------------- | ------------------------- |
+| **Setup**                 | Ya está configurado ✅ | Requiere VM + instalación |
+| **SSO/AD**                | Ya integrado ✅        | Requiere configuración    |
+| **Usuarios**              | Ya están ahí ✅        | Hay que crear todos       |
+| **Teams Integration**     | Nativa ✅              | Webhook manual            |
+| **Hosting**               | Microsoft cloud ✅     | Tu VM (mantenimiento)     |
+| **Backup**                | Automático ✅          | Tienes que configurar     |
+| **Costo infraestructura** | €0 ✅                  | VM + electricidad         |
+| **Curva aprendizaje**     | Baja (ya lo usan) ✅   | Alta (tool nuevo)         |
 
 ### Lo Que NO Cambia
 
@@ -37,7 +38,6 @@
 ---
 
 ## 📋 Arquitectura con Azure DevOps
-
 
 ```mermaid
 flowchart TB
@@ -61,7 +61,6 @@ flowchart TB
     direction LR
     Branch-->Teams
     Branch-->Notion
-    
 ```
 
 ---
@@ -86,9 +85,11 @@ flowchart TB
 **En Azure DevOps Web:**
 
 1. **Ir a tu Organization**
+   
    - https://dev.azure.com/{tu-organizacion}
 
 2. **Click "New Project"**
+   
    - Project name: `Architecture Documentation`
    - Visibility: Private (o Enterprise según política)
    - Version control: **Git**
@@ -96,6 +97,7 @@ flowchart TB
    - Click "Create"
 
 3. **Resultado:**
+   
    - Proyecto creado con URL:
    - `https://dev.azure.com/{org}/Architecture Documentation`
 
@@ -179,7 +181,7 @@ stages:
         displayName: 'Validate Structure'
         steps:
           - checkout: self
-          
+
           - bash: |
               echo "📁 Validating repository structure..."
               REQUIRED_DIRS="00-templates 01-global 02-infrastructure 03-services"
@@ -190,29 +192,29 @@ stages:
                   MISSING=1
                 fi
               done
-              
+
               if [ $MISSING -eq 1 ]; then
                 echo "##vso[task.complete result=Failed;]Structure validation failed"
                 exit 1
               fi
-              
+
               echo "✅ Structure validation passed"
             displayName: 'Check Directory Structure'
-      
+
       - job: Lint
         displayName: 'Lint Markdown'
         steps:
           - checkout: self
-          
+
           - task: NodeTool@0
             inputs:
               versionSpec: '20.x'
             displayName: 'Install Node.js'
-          
+
           - bash: |
               npm install -g markdownlint-cli markdown-link-check cspell
             displayName: 'Install Linters'
-          
+
           - bash: |
               echo "📝 Linting markdown files..."
               find . -name "*.md" \
@@ -225,7 +227,7 @@ stages:
               echo "✅ Markdown lint passed"
             displayName: 'Lint Markdown'
             continueOnError: false
-          
+
           - bash: |
               echo "🔗 Checking links..."
               EXIT_CODE=0
@@ -235,15 +237,15 @@ stages:
                 | while read file; do
                   markdown-link-check "$file" -c .markdown-link-check.json || EXIT_CODE=1
                 done
-              
+
               if [ $EXIT_CODE -ne 0 ]; then
                 echo "##vso[task.logissue type=warning]Some links are broken"
               fi
-              
+
               echo "✅ Link check complete"
             displayName: 'Check Links'
             continueOnError: true
-          
+
           - bash: |
               echo "📖 Checking spelling..."
               find . -name "*.md" \
@@ -262,22 +264,22 @@ stages:
         displayName: 'Check Service Completeness'
         steps:
           - checkout: self
-          
+
           - bash: |
               echo "🔍 Testing service documentation completeness..."
-              
+
               for service_dir in 03-services/*/; do
                 if [ -d "$service_dir" ]; then
                   service=$(basename "$service_dir")
                   echo "Checking service: $service"
-                  
+
                   FILES=(
                     "01-architecture-design.md"
                     "02-deployment-runbook.md"
                     "03-service-ownership.md"
                     "04-observability.md"
                   )
-                  
+
                   for file in "${FILES[@]}"; do
                     if [ ! -f "$service_dir/$file" ]; then
                       echo "##vso[task.logissue type=warning]Missing $file in $service"
@@ -285,7 +287,7 @@ stages:
                   done
                 fi
               done
-              
+
               echo "✅ Completeness check complete"
             displayName: 'Check Service Docs'
 
@@ -298,10 +300,10 @@ stages:
         displayName: 'Notify Teams'
         steps:
           - checkout: none
-          
+
           - bash: |
               echo "📢 Sending notification to Teams..."
-              
+
               # Determinar estado
               if [ "$(stageDependencies.Validate.Lint.result)" == "Succeeded" ]; then
                 COLOR="28a745"
@@ -312,7 +314,7 @@ stages:
                 TITLE="❌ Documentation Pipeline Failed"
                 SUMMARY="Some validation checks failed"
               fi
-              
+
               # Enviar a Teams (si webhook configurado)
               if [ -n "$(TEAMS_WEBHOOK_URL)" ]; then
                 curl -H "Content-Type: application/json" -d "{
@@ -339,7 +341,7 @@ stages:
                   }]
                 }" "$(TEAMS_WEBHOOK_URL)"
               fi
-              
+
               echo "✅ Notification sent"
             displayName: 'Send Teams Notification'
             env:
@@ -353,15 +355,18 @@ stages:
 1. **Ir a Pipelines → Create Pipeline**
 
 2. **Seleccionar:**
+   
    - Where is your code? **Azure Repos Git**
    - Select repository: **architecture-docs**
    - Configure: **Existing Azure Pipelines YAML file**
    - Path: `/azure-pipelines.yml`
 
 3. **Click "Run"**
+   
    - Primera ejecución se inicia automáticamente
 
 4. **Verificar:**
+   
    - Pipeline ejecuta correctamente
    - Todos los jobs pasan
 
@@ -372,6 +377,7 @@ stages:
 1. **Pipelines → tu pipeline → Edit → Variables**
 
 2. **Add variable:**
+   
    - Name: `TEAMS_WEBHOOK_URL`
    - Value: `https://company.webhook.office.com/webhookb2/xxx...`
    - ✅ Keep this value secret
@@ -394,6 +400,7 @@ stages:
 3. **Configurar políticas:**
 
 #### ✅ Require a minimum number of reviewers
+
 - Minimum: **1 reviewer**
 - ✅ Allow requestors to approve their own changes: **NO**
 - ✅ Prohibit the most recent pusher from approving: **YES**
@@ -401,12 +408,15 @@ stages:
 - When new changes are pushed: **Reset all approval votes**
 
 #### ✅ Check for linked work items
+
 - Required / Optional según preferencia
 
 #### ✅ Check for comment resolution
+
 - ✅ **Required** (All comments must be resolved)
 
 #### ✅ Build validation
+
 - Build pipeline: **architecture-docs CI**
 - Trigger: **Automatic**
 - Policy requirement: **Required**
@@ -486,6 +496,7 @@ git push
 ```
 
 **Activar:**
+
 - Branch policies → **Automatically included reviewers**
 - Add **Code Owners** as reviewers
 
@@ -580,12 +591,14 @@ El pipeline ya envía notificaciones automáticamente.
 1. **Settings → Service hooks**
 
 2. **Create subscription:**
+   
    - Service: **Microsoft Teams**
    - Trigger: Various (Code pushed, PR created, PR merged, etc.)
    - Team: Seleccionar tu Teams channel
    - Filter: Project = Architecture Documentation
 
 3. **Resultado:**
+   
    - Notificaciones automáticas en Teams para todos los eventos
    - Más rico que webhook simple
 
@@ -596,11 +609,13 @@ El pipeline ya envía notificaciones automáticamente.
 1. **En Teams channel → "+" → Azure DevOps**
 
 2. **Configurar:**
+   
    - Organization: Tu org
    - Project: Architecture Documentation
    - Type: Repos / Pipelines / Boards
 
 3. **Resultado:**
+   
    - Ver repos directamente en Teams
    - No necesitas salir de Teams para ver docs
 
@@ -611,6 +626,7 @@ El pipeline ya envía notificaciones automáticamente.
 **Referencia:** Ver Sección 7 de `13-technical-implementation-guide.md`
 
 No cambia nada - mismo proceso:
+
 1. Crear workspace
 2. Crear estructura de páginas
 3. Sync manual o via API
@@ -624,6 +640,7 @@ No cambia nada - mismo proceso:
 **¡Ya está hecho!** 🎉
 
 Azure DevOps tiene backup automático:
+
 - Backups diarios automáticos
 - Retención según tu plan
 - No necesitas hacer nada
@@ -655,16 +672,19 @@ az storage blob upload \
 **Built-in Analytics:**
 
 1. **Repos → Analytics → Overview**
+   
    - Commits per day
    - Active contributors
    - Files changed
 
 2. **Pipelines → Analytics**
+   
    - Build success rate
    - Duration trends
    - Failure analysis
 
 3. **Custom Dashboard:**
+   
    - Overview → Dashboards → New dashboard
    - Agregar widgets:
      - Pipeline success rate
@@ -679,6 +699,7 @@ az storage blob upload \
 1. **User settings → Notifications**
 
 2. **Enable alerts for:**
+   
    - Build fails
    - PR requires review
    - PR comments
@@ -693,12 +714,14 @@ az storage blob upload \
 **La mayoría funcionan igual**, solo pequeños cambios:
 
 #### validate-docs.sh
+
 ```bash
 # Funciona igual, sin cambios
 ./scripts/validate-docs.sh
 ```
 
 #### new-service.sh
+
 ```bash
 # Pequeño cambio en CODEOWNERS path
 # Cambiar: CODEOWNERS
@@ -706,6 +729,7 @@ az storage blob upload \
 ```
 
 #### generate-metrics.py
+
 ```bash
 # Funciona igual
 ./scripts/generate-metrics.py html
@@ -798,14 +822,14 @@ Closes #[work item ID]
 
 ### Tiempo de Setup
 
-| Tarea | Azure DevOps | GitLab CE |
-|-------|--------------|-----------|
-| Infraestructura | 0h (ya existe) | 4h (VM + install) |
-| Pipeline setup | 1h | 2h |
-| Branch policies | 1h | 1h |
-| Teams integration | 30min (nativo) | 1h (webhook) |
-| Users/SSO | 0h (ya existe) | 2h |
-| **TOTAL** | **2.5h** ⚡ | **10h** |
+| Tarea             | Azure DevOps   | GitLab CE         |
+| ----------------- | -------------- | ----------------- |
+| Infraestructura   | 0h (ya existe) | 4h (VM + install) |
+| Pipeline setup    | 1h             | 2h                |
+| Branch policies   | 1h             | 1h                |
+| Teams integration | 30min (nativo) | 1h (webhook)      |
+| Users/SSO         | 0h (ya existe) | 2h                |
+| **TOTAL**         | **2.5h** ⚡     | **10h**           |
 
 ### Ventajas Azure DevOps
 
@@ -836,6 +860,7 @@ Closes #[work item ID]
 **Error: "No hosted parallelism has been purchased"**
 
 Solución:
+
 1. Azure DevOps → Organization settings
 2. Billing → Parallel jobs
 3. Purchase at least 1 parallel job
@@ -845,6 +870,7 @@ Solución:
 **Error: Node packages not installing**
 
 Solución:
+
 ```yaml
 # Add to pipeline antes de npm install
 - bash: |
@@ -857,6 +883,7 @@ Solución:
 **Problema:** PRs no requieren approval
 
 Solución:
+
 1. Verificar branch policies están en `main`
 2. Verificar "Minimum number of reviewers" > 0
 3. Verificar "Policy requirement" = Required
@@ -867,6 +894,7 @@ Solución:
 **Problema:** Required reviewers no se asignan automáticamente
 
 Solución:
+
 1. Archivo debe estar en `.azuredevops/CODEOWNERS`
 2. Branch policy debe tener "Code Owners" enabled
 3. Syntax: Same as GitHub CODEOWNERS
@@ -877,14 +905,19 @@ Solución:
 **Problema:** Webhook no dispara
 
 Solución:
+
 1. Verificar variable `TEAMS_WEBHOOK_URL` configurada
+
 2. Verificar es "secret" variable
+
 3. Test manual:
+   
    ```bash
    curl -H "Content-Type: application/json" \
      -d '{"text":"Test"}' \
      "$TEAMS_WEBHOOK_URL"
    ```
+
 4. Verificar webhook no expiró en Teams
 
 ---
@@ -978,9 +1011,13 @@ Opción: Publicar docs como Wiki además de Notion
 **Crear templates en Azure Boards:**
 
 1. **Boards → Backlogs → +New Work Item → Template**
+
 2. **Tipo:** Task / User Story
+
 3. **Template:** "Document New Service"
+
 4. **Checklist:**
+   
    ```
    - [ ] Create service folder
    - [ ] Fill architecture design
@@ -1010,6 +1047,7 @@ Opción: Publicar docs como Wiki además de Notion
 ## 14. Checklist de Implementación Azure DevOps
 
 ### Setup Inicial (2-3 horas)
+
 - [ ] Proyecto creado en Azure DevOps
 - [ ] Repo inicializado con estructura
 - [ ] `azure-pipelines.yml` creado
@@ -1021,6 +1059,7 @@ Opción: Publicar docs como Wiki además de Notion
 - [ ] Variables de pipeline configuradas
 
 ### Templates y Estructura (1 hora)
+
 - [ ] 8 templates copiados a 00-templates/
 - [ ] Estructura de carpetas creada
 - [ ] CODEOWNERS file creado (.azuredevops/CODEOWNERS)
@@ -1028,12 +1067,14 @@ Opción: Publicar docs como Wiki además de Notion
 - [ ] CONTRIBUTING.md creado
 
 ### Scripts y Herramientas (30 min)
+
 - [ ] Scripts copiados a /scripts/
 - [ ] Scripts ejecutables (chmod +x)
 - [ ] Scripts adaptados para Azure (si necesario)
 - [ ] validate-docs.sh probado
 
 ### Testing (30 min)
+
 - [ ] Pipeline ejecuta correctamente
 - [ ] Crear PR de prueba
 - [ ] Verificar required reviewers asignados
@@ -1042,6 +1083,7 @@ Opción: Publicar docs como Wiki además de Notion
 - [ ] Merge PR de prueba
 
 ### Piloto (1 semana)
+
 - [ ] 3 servicios seleccionados
 - [ ] Workshop con equipos
 - [ ] 3 servicios documentados
@@ -1056,6 +1098,7 @@ Opción: Publicar docs como Wiki además de Notion
 ### Azure DevOps
 
 **Si ya tienes Azure DevOps:**
+
 - Setup: €0
 - Hosting: €0 (ya pagado)
 - Parallel jobs: €0-€40/mes (1 gratis, más si necesitas)
@@ -1115,12 +1158,14 @@ Más el valor del tiempo de setup (8 horas @ €100/hora = €800)
 6. ✅ **Más familiar** para tu equipo
 
 **Todo lo demás es igual:**
+
 - ✅ Mismos templates
 - ✅ Misma estrategia
 - ✅ Mismo proceso
 - ✅ Mismos scripts (95% sin cambios)
 
 **Tu próximo paso:**
+
 1. Crear proyecto en Azure DevOps (10 min)
 2. Seguir este documento paso a paso (2-3 horas)
 3. Documentar primer servicio piloto (4 horas)

@@ -3,8 +3,9 @@
 > **Version:** 1.0  
 > **Fecha:** 2025-02-19  
 > **Estado:** Approved  
-> **Autor:** Public Cloud Team  
-> **Service Owner:** Arquitectura IT  
+> **Autor:** Cloud Architecture  
+> **Service Owner:** Cloud Architecture 
+> 
 > **Última Revisión:** 2025-02-19
 
 ---
@@ -17,6 +18,7 @@ Procedimiento completo para desplegar el servicio de Industrial Image Backup en 
 **Tiempo estimado:** 4-6 horas (primera instalación), 2-3 horas (plantas subsecuentes)
 
 **Prerequisitos:**
+
 - [ ] VM Windows Server 2022 provisionada en red IT de la planta
 - [ ] Conectividad ExpressRoute o VPN site-to-site a Azure establecida
 - [ ] Acceso de red desde VM IT hacia Azure (puerto 443 outbound)
@@ -25,6 +27,7 @@ Procedimiento completo para desplegar el servicio de Industrial Image Backup en 
 - [ ] Azure Storage Account creado en región apropiada
 
 **Responsables:**
+
 - **Despliegue inicial:** Public Cloud Team + IT Operations
 - **Soporte:** IT Operations (local) + Public Cloud (remoto)
 
@@ -36,20 +39,20 @@ Procedimiento completo para desplegar el servicio de Industrial Image Backup en 
 
 Completa esta tabla ANTES de comenzar el deployment:
 
-| Item | Valor | Ejemplo | Obtenido de |
-|------|-------|---------|-------------|
-| **Código de Planta** | [FACTORY-XX] | FACTORY-EU01 | Negocio |
-| **Región Azure** | [West Europe / East US] | West Europe | Arquitectura IT |
-| **Red OT CIDR** | [10.x.x.x/16] | 10.100.0.0/16 | IT Local |
-| **IP(s) servidores OT** | [10.x.x.10-20] | 10.100.10.15 | IT Local |
-| **Red IT CIDR** | [192.168.x.x/24] | 192.168.10.0/24 | IT Local |
-| **IP VM Gateway** | [192.168.x.x] | 192.168.10.50 | IT Local |
-| **Nombre VM Gateway** | [ITGW-FACTORY-XX] | ITGW-FACTORY-EU01 | Naming convention |
-| **Storage Account Name** | [industrialbackup{region}] | industrialbackupweu | Arquitectura IT (ya existe) |
-| **Container Name** | [plant-{code}-images] | plant-eu01-images | Auto-generado |
-| **Volumen mensual estimado** | [100-500 GB] | 350 GB | Negocio |
-| **Contact IT Local** | [Nombre] | Juan García | IT Local |
-| **Contact Negocio** | [Nombre] | María López | Negocio |
+| Item                         | Valor                      | Ejemplo             | Obtenido de                 |
+| ---------------------------- | -------------------------- | ------------------- | --------------------------- |
+| **Código de Planta**         | [FACTORY-XX]               | FACTORY-EU01        | Negocio                     |
+| **Región Azure**             | [West Europe / East US]    | West Europe         | Arquitectura IT             |
+| **Red OT CIDR**              | [10.x.x.x/16]              | 10.100.0.0/16       | IT Local                    |
+| **IP(s) servidores OT**      | [10.x.x.10-20]             | 10.100.10.15        | IT Local                    |
+| **Red IT CIDR**              | [192.168.x.x/24]           | 192.168.10.0/24     | IT Local                    |
+| **IP VM Gateway**            | [192.168.x.x]              | 192.168.10.50       | IT Local                    |
+| **Nombre VM Gateway**        | [ITGW-FACTORY-XX]          | ITGW-FACTORY-EU01   | Naming convention           |
+| **Storage Account Name**     | [industrialbackup{region}] | industrialbackupweu | Arquitectura IT (ya existe) |
+| **Container Name**           | [plant-{code}-images]      | plant-eu01-images   | Auto-generado               |
+| **Volumen mensual estimado** | [100-500 GB]               | 350 GB              | Negocio                     |
+| **Contact IT Local**         | [Nombre]                   | Juan García         | IT Local                    |
+| **Contact Negocio**          | [Nombre]                   | María López         | Negocio                     |
 
 ### 2.2 Azure Resources Required (verificar existencia)
 
@@ -68,12 +71,12 @@ Permisos necesarios para el deploymen
 
 t:
 
-| Persona/Rol | Acceso Necesario | Duración |
-|-------------|------------------|----------|
-| Cloud Engineer | Owner en Resource Group Azure | Durante deployment |
-| Cloud Engineer | Local Admin en VM Gateway | Durante deployment |
-| IT Operations | Local Admin en VM Gateway | Permanente (soporte) |
-| Network Engineer | Admin en Checkpoint Firewall | Durante configuración FW |
+| Persona/Rol      | Acceso Necesario              | Duración                 |
+| ---------------- | ----------------------------- | ------------------------ |
+| Cloud Engineer   | Owner en Resource Group Azure | Durante deployment       |
+| Cloud Engineer   | Local Admin en VM Gateway     | Durante deployment       |
+| IT Operations    | Local Admin en VM Gateway     | Permanente (soporte)     |
+| Network Engineer | Admin en Checkpoint Firewall  | Durante configuración FW |
 
 ---
 
@@ -130,6 +133,7 @@ Get-AzStorageAccountManagementPolicy -ResourceGroupName $resourceGroup -AccountN
 ```
 
 **Explicación:**
+
 - `TierToCoolAfterDaysSinceCreationGreaterThan 0` → Mueve a Cool tier inmediatamente tras upload
 - `TierToArchiveAfterDaysSinceCreationGreaterThan 365` → Mueve a Archive tier después de 1 año
 
@@ -170,6 +174,7 @@ Get-AzStorageBlobServiceProperty -ResourceGroupName $resourceGroup -StorageAccou
 #### 3.2.1 Provisionar VM Windows Server 2022
 
 **Opción A: Azure Portal (manual)**
+
 1. Azure Portal → Virtual Machines → Create
 2. **Basics:**
    - Subscription: `Industrial-Operations`
@@ -248,6 +253,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "data" {
 ```
 
 Deploy con Terraform:
+
 ```bash
 cd infrastructure/azure
 terraform init
@@ -399,7 +405,7 @@ try {
 
             # Mover a Staging
             $destPath = Join-Path $StagingPath $file.Name
-            
+
             # Si ya existe en Staging, renombrar con timestamp
             if (Test-Path $destPath) {
                 $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
@@ -486,9 +492,9 @@ try {
 
     # Upload con AzCopy (batch upload)
     Write-Log "Starting AzCopy upload..."
-    
+
     $azcopyCmd = "azcopy copy `"$StagingPath\*`" `"$BlobUrl`" --recursive=false --check-md5=FailIfDifferent --log-level=INFO"
-    
+
     $result = Invoke-Expression $azcopyCmd 2>&1
     Write-Log "AzCopy output: $result"
 
@@ -504,7 +510,7 @@ try {
         foreach ($file in $files) {
             try {
                 $destPath = Join-Path $ProcessedPath $file.Name
-                
+
                 # Si ya existe, renombrar con timestamp
                 if (Test-Path $destPath) {
                     $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
@@ -772,7 +778,7 @@ try {
     foreach ($file in $files) {
         try {
             $destPath = Join-Path "Z:\" $file.Name
-            
+
             # Verificar si ya existe (skip duplicados)
             if (Test-Path $destPath) {
                 Write-Log "File $($file.Name) already exists, skipping"
@@ -813,6 +819,7 @@ Register-ScheduledTask -TaskName "ImageBackup-CopyToIT" -Action $action -Trigger
 ### 4.1 Functional Testing
 
 #### Test 1: Conectividad OT → IT (SMB)
+
 ```powershell
 # Desde servidor OT
 Test-NetConnection -ComputerName 192.168.10.50 -Port 445
@@ -824,6 +831,7 @@ New-Item -Path "\\192.168.10.50\ImageBackup\test.txt" -ItemType File
 ```
 
 #### Test 2: Upload a Azure
+
 ```powershell
 # Desde VM Gateway IT
 # Crear archivo de prueba
@@ -843,6 +851,7 @@ Get-AzStorageBlob -Container "plant-eu01-images" -Context $storageAccount.Contex
 ```
 
 #### Test 3: Lifecycle Policy
+
 ```powershell
 # Verificar que el blob está en Cool tier (no Archive inmediatamente)
 $blob = Get-AzStorageBlob -Container "plant-eu01-images" -Blob "test-image.jpg" -Context $storageAccount.Context
@@ -852,6 +861,7 @@ $blob.ICloudBlob.Properties.StandardBlobTier
 ```
 
 #### Test 4: Cleanup
+
 ```powershell
 # Crear archivo antiguo en Processed/
 $oldFile = "D:\ImageBackup\Processed\old-test.jpg"
@@ -946,14 +956,14 @@ Send-MailMessage -To "it-local@plant.com,business@plant.com" `
 
 ### 6.1 Common Issues
 
-| Problema | Causa Probable | Solución |
-|----------|---------------|----------|
-| **Files not appearing in Staging/** | Script Monitor no se ejecuta | Verificar Task Scheduler: `Get-ScheduledTask IndustrialBackup-Monitor` |
-| **Upload fails with "Forbidden"** | Managed Identity sin permisos | Verificar RBAC: `Get-AzRoleAssignment -ObjectId <MI-ObjectId>` |
-| **Upload very slow (< 5 MB/min)** | Problema de red/bandwidth | Verificar ExpressRoute: `Test-NetConnection blob.core.windows.net -Port 443` |
-| **Files stuck in Staging/** | Script Upload falla silenciosamente | Revisar logs: `D:\ImageBackup\Logs\Upload-*.log` |
-| **Local disk full (D:\)** | Cleanup no funciona | Verificar Task Cleanup ejecutándose: `Get-ScheduledTask IndustrialBackup-Cleanup` |
-| **OT cannot write to share** | Permisos SMB incorrectos | Verificar `Get-SmbShareAccess -Name ImageBackup` |
+| Problema                            | Causa Probable                      | Solución                                                                          |
+| ----------------------------------- | ----------------------------------- | --------------------------------------------------------------------------------- |
+| **Files not appearing in Staging/** | Script Monitor no se ejecuta        | Verificar Task Scheduler: `Get-ScheduledTask IndustrialBackup-Monitor`            |
+| **Upload fails with "Forbidden"**   | Managed Identity sin permisos       | Verificar RBAC: `Get-AzRoleAssignment -ObjectId <MI-ObjectId>`                    |
+| **Upload very slow (< 5 MB/min)**   | Problema de red/bandwidth           | Verificar ExpressRoute: `Test-NetConnection blob.core.windows.net -Port 443`      |
+| **Files stuck in Staging/**         | Script Upload falla silenciosamente | Revisar logs: `D:\ImageBackup\Logs\Upload-*.log`                                  |
+| **Local disk full (D:\)**           | Cleanup no funciona                 | Verificar Task Cleanup ejecutándose: `Get-ScheduledTask IndustrialBackup-Cleanup` |
+| **OT cannot write to share**        | Permisos SMB incorrectos            | Verificar `Get-SmbShareAccess -Name ImageBackup`                                  |
 
 ### 6.2 Diagnostic Commands
 
@@ -982,22 +992,23 @@ Get-Content "D:\ImageBackup\Logs\Upload-$(Get-Date -Format 'yyyy-MM-dd').log" | 
 
 ### 7.1 Regular Maintenance Tasks
 
-| Task | Frequency | Owner | Procedure |
-|------|-----------|-------|-----------|
-| **Review logs for errors** | Weekly | IT Operations | Check `D:\ImageBackup\Logs\` for ERROR entries |
-| **Check local disk space** | Weekly | IT Operations | `Get-Volume D` — alert if < 20% free |
-| **Verify uploads succeeded** | Daily | IT Operations | Check Azure Portal — files timestamp debe ser < 24h |
-| **Test restore from Archive** | Quarterly | Public Cloud | Initiate rehydration and verify integrity |
-| **Update PowerShell modules** | Monthly | Public Cloud | `Update-Module Az.Storage, Az.Monitor` |
-| **Update AzCopy** | Quarterly | Public Cloud | Download latest from https://aka.ms/downloadazcopy-v10-windows |
-| **Review Azure costs** | Monthly | Arquitectura IT | Check cost analysis — alert if > 10% variance |
-| **Test DR failover** | Annually | Public Cloud + SRE | Simulate VM failure and rebuild |
+| Task                          | Frequency | Owner              | Procedure                                                      |
+| ----------------------------- | --------- | ------------------ | -------------------------------------------------------------- |
+| **Review logs for errors**    | Weekly    | IT Operations      | Check `D:\ImageBackup\Logs\` for ERROR entries                 |
+| **Check local disk space**    | Weekly    | IT Operations      | `Get-Volume D` — alert if < 20% free                           |
+| **Verify uploads succeeded**  | Daily     | IT Operations      | Check Azure Portal — files timestamp debe ser < 24h            |
+| **Test restore from Archive** | Quarterly | Public Cloud       | Initiate rehydration and verify integrity                      |
+| **Update PowerShell modules** | Monthly   | Public Cloud       | `Update-Module Az.Storage, Az.Monitor`                         |
+| **Update AzCopy**             | Quarterly | Public Cloud       | Download latest from https://aka.ms/downloadazcopy-v10-windows |
+| **Review Azure costs**        | Monthly   | Arquitectura IT    | Check cost analysis — alert if > 10% variance                  |
+| **Test DR failover**          | Annually  | Public Cloud + SRE | Simulate VM failure and rebuild                                |
 
 ### 7.2 Scheduled Maintenance Windows
 
 **Preferred window:** Lunes 02:00-04:00 hora local de cada planta
 
 **Procedure:**
+
 1. Notificar Negocio con 7 días de antelación
 2. Deshabilitar Task Scheduler tasks
 3. Perform maintenance (update scripts, reboot VM, etc.)
@@ -1009,12 +1020,12 @@ Get-Content "D:\ImageBackup\Logs\Upload-$(Get-Date -Format 'yyyy-MM-dd').log" | 
 
 ## 8. Contacts
 
-| Role | Name | Email | Phone |
-|------|------|-------|-------|
-| Service Owner | Architecture Lead | architecture-team@company.com | +XX XXX XXX XXX |
-| Tech Lead | Cloud Architect | cloud-team@company.com | +XX XXX XXX XXX |
-| On-call (24x7) | IT Operations | it-ops@company.com | +XX XXX XXX XXX |
-| Escalation | Cloud Director | cloud-director@company.com | +XX XXX XXX XXX |
+| Role           | Name              | Email                         | Phone           |
+| -------------- | ----------------- | ----------------------------- | --------------- |
+| Service Owner  | Architecture Lead | architecture-team@company.com | +XX XXX XXX XXX |
+| Tech Lead      | Cloud Architect   | cloud-team@company.com        | +XX XXX XXX XXX |
+| On-call (24x7) | IT Operations     | it-ops@company.com            | +XX XXX XXX XXX |
+| Escalation     | Cloud Director    | cloud-director@company.com    | +XX XXX XXX XXX |
 
 **PagerDuty:** https://company.pagerduty.com/services/INDBACK01  
 **Slack Channel:** #industrial-backup-support
@@ -1023,13 +1034,14 @@ Get-Content "D:\ImageBackup\Logs\Upload-$(Get-Date -Format 'yyyy-MM-dd').log" | 
 
 ## 9. Change History
 
-| Version | Fecha | Autor | Cambios |
-|---------|-------|-------|---------|
-| 1.0 | 2025-02-19 | Public Cloud Team | Versión inicial — procedimiento deployment plantas EU/América |
+| Version | Fecha      | Autor             | Cambios                                                       |
+| ------- | ---------- | ----------------- | ------------------------------------------------------------- |
+| 1.0     | 2025-02-19 | Public Cloud Team | Versión inicial — procedimiento deployment plantas EU/América |
 
 ---
 
 **Notas:**
+
 - Este runbook debe actualizarse cuando se añadan nuevas plantas o cambien procedimientos
 - Todas las credenciales (passwords, SAS tokens) deben almacenarse en Azure Key Vault, NO en scripts
 - Validar runbook completo al menos 1 vez al año en planta piloto
