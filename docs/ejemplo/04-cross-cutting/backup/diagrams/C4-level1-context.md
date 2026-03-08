@@ -1,3 +1,4 @@
+```mermaid
 graph TB
     subgraph PLANT["🏭 Planta Industrial (Edge Site)"]
         subgraph OT_ZONE["Red OT (Purdue Level 2-3)<br/>10.x.x.x/16"]
@@ -66,3 +67,4 @@ graph TB
     class SECONDARY secondaryStyle
     class TERTIARY cloudStyle
     class USERS,MON userStyle
+```
