@@ -1,9 +1,15 @@
 # Architecture Review Process — Documentation Package
 
+<<<<<<< HEAD
 > **Version:** 1.1  
 > **Last Updated:** 2025-03-20  
 > **Owner:** IT Architecture Team
 > **Changelog:** v1.1 - Converted ASCII diagrams to Mermaid
+=======
+> **Version:** 1.0  
+> **Last Updated:** 2025-03-20  
+> **Owner:** IT Architecture Team
+>>>>>>> c08c3f2be26b4331061b38800c56b65e38baa7d4
 
 ---
 
@@ -89,6 +95,7 @@ This package provides a complete, production-ready Architecture Review process f
 
 ## 📊 Process at a Glance
 
+<<<<<<< HEAD
 ```mermaid
 graph TD
     A[1. REQUEST<br/>Project team submits design<br/>2+ weeks before implementation] --> B[2. ASSIGN<br/>Architecture team<br/>assigns reviewers<br/>within 3 days]
@@ -108,6 +115,31 @@ graph TD
     style F fill:#fff9e1
     style G fill:#ffe1e1
     style H fill:#e8f4f8
+=======
+```
+┌─────────────┐
+│  1. REQUEST │  Project team submits design (2+ weeks before impl)
+└──────┬──────┘
+       │
+┌──────▼──────┐
+│ 2. ASSIGN   │  Architecture team assigns reviewers (within 3 days)
+└──────┬──────┘
+       │
+┌──────▼──────┐
+│ 3. REVIEW   │  Review meeting (60-90 min) → Discussion + Decision
+└──────┬──────┘
+       │
+┌──────▼──────────────────────────────────┐
+│ 4. DECISION                              │
+│  ✅ Approved                             │
+│  ⚠️ Conditional (minor fixes required)   │
+│  ❌ Rejected (major redesign needed)     │
+└──────┬───────────────────────────────────┘
+       │
+┌──────▼──────┐
+│ 5. FOLLOW-UP│  Track conditions, post-impl review, lessons learned
+└─────────────┘
+>>>>>>> c08c3f2be26b4331061b38800c56b65e38baa7d4
 ```
 
 **Typical timeline:** 10 business days from submission to decision.
@@ -434,10 +466,16 @@ architecture-review/
 
 ## 🔄 Change History
 
+<<<<<<< HEAD
 | Version | Date       | Author          | Changes                                                  |
 | ------- | ---------- | --------------- | -------------------------------------------------------- |
 | 1.0     | 2025-03-20 | IT Architecture | Initial release — Complete Architecture Review process   |
 | 1.1     | 2025-03-20 | IT Architecture | Converted ASCII diagrams to Mermaid for better rendering |
+=======
+| Version | Date       | Author          | Changes                                                |
+| ------- | ---------- | --------------- | ------------------------------------------------------ |
+| 1.0     | 2025-03-20 | IT Architecture | Initial release — Complete Architecture Review process |
+>>>>>>> c08c3f2be26b4331061b38800c56b65e38baa7d4
 
 ---
 

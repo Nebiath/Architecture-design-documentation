@@ -1,12 +1,19 @@
 # Architecture Review Process
 
+<<<<<<< HEAD
 > **Version:** 1.1  
+=======
+> **Version:** 1.0  
+>>>>>>> c08c3f2be26b4331061b38800c56b65e38baa7d4
 > **Date:** 2025-03-20  
 > **Status:** Approved  
 > **Author:** IT Architecture Team  
 > **Owner:** Chief Architect  
 > **Scope:** Global — All IT/OT infrastructure projects
+<<<<<<< HEAD
 > **Changelog:** v1.1 - Converted ASCII diagrams to Mermaid
+=======
+>>>>>>> c08c3f2be26b4331061b38800c56b65e38baa7d4
 
 ---
 
@@ -96,6 +103,7 @@ The following do **not** require review:
 
 ### 3.1 Process Overview
 
+<<<<<<< HEAD
 ```mermaid
 graph TD
     A[1. REQUEST<br/>Project team submits<br/>design docs] --> B[2. PRE-REVIEW<br/>Architecture team<br/>assigns reviewers<br/>within 3 days]
@@ -116,6 +124,28 @@ graph TD
 ```
 
 **Timeline:** Typical process takes **10 business days** from submission to decision.
+=======
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    ARCHITECTURE REVIEW FLOW                     │
+└─────────────────────────────────────────────────────────────────┘
+
+1. REQUEST                2. PRE-REVIEW           3. REVIEW MEETING
+┌──────────────┐         ┌──────────────┐        ┌──────────────┐
+│ Project team │  --->   │ Architecture │  --->  │ Review panel │
+│ submits      │         │ team assigns │        │ evaluates    │
+│ design docs  │         │ reviewers    │        │ design       │
+└──────────────┘         └──────────────┘        └──────────────┘
+                                                         |
+                                                         v
+4. DECISION              5. FOLLOW-UP
+┌──────────────┐         ┌──────────────┐
+│ Approved,    │  <---   │ Conditions   │
+│ Conditional, │         │ tracked in   │
+│ or Rejected  │         │ Jira/ADR     │
+└──────────────┘         └──────────────┘
+```
+>>>>>>> c08c3f2be26b4331061b38800c56b65e38baa7d4
 
 ### 3.2 Step-by-Step Process
 
@@ -650,10 +680,16 @@ The following templates are available in the architecture repository:
 
 ## 15. Change History
 
+<<<<<<< HEAD
 | Version | Date       | Author          | Changes                                                  |
 | ------- | ---------- | --------------- | -------------------------------------------------------- |
 | 1.0     | 2025-03-20 | IT Architecture | Initial version — Architecture Review Process            |
 | 1.1     | 2025-03-20 | IT Architecture | Converted ASCII diagrams to Mermaid for better rendering |
+=======
+| Version | Date       | Author          | Changes                                       |
+| ------- | ---------- | --------------- | --------------------------------------------- |
+| 1.0     | 2025-03-20 | IT Architecture | Initial version — Architecture Review Process |
+>>>>>>> c08c3f2be26b4331061b38800c56b65e38baa7d4
 
 ---
 
