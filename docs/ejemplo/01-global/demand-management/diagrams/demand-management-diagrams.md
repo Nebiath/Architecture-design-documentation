@@ -25,7 +25,7 @@ This diagram shows the complete demand management process from request submissio
 
 ```mermaid
 graph TD
-    Start([Stakeholder Submits Request]) --> Intake[1. INTAKE<br/>architecture-requests@company.com<br/>or Jira Service Desk]
+    Start([Stakeholder Submits Request]) --> Intake[1. INTAKE<br/>gestion-demanda@company.com<br/>or Service Desk Ticket]
 
     Intake --> Triage[2. INITIAL TRIAGE<br/>Architect reviews<br/>within 3 days]
 
