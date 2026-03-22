@@ -85,8 +85,6 @@ graph TD
 
 ---
 
-
-
 ## 2. Intake and Triage Process
 
 Detailed view of the initial request handling.
